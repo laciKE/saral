@@ -18,6 +18,7 @@ Platné identifikátory sú postupnosti malých a veľkých písmen, číslic a 
 * `numeralio`
 * `písmeno`
 * `slovo`
+* `falda`
 * `inakši`
 * `bar`
 * `paľ do baru`
@@ -174,3 +175,14 @@ kým (logický furt alebo meňak) rob
 	...
 ```
 Je však prudko odporúčané dobre si premyslieť použitie druhej konštrukcie s logickým furtom.
+
+####Vstup a výstup
+#####stdin/stdout
+Ak chceme niečo vypísať, použijeme príkaz `tiskaj typ názov`, kde názov je názov meňaku alebo furtu, ktorý treba vypísať.
+Vstup sa načítava pomocou príkazu `vežmi typ názov`, kde názov je názov meňaku alebo furtu, ktorý treba vypísať.
+
+#####nstdin/nstdout
+Pre počítače 8. generácie a ich (v dobe vytvorenia jazyka Šaral 1.0) nestandardný vstup a výstup má tento jazyk podporu aj pre inštrukcie `povidz typ názov` a `sluchaj typ názov`, ktoré možno budú podporované už v jazyku Šaral 2.0 (ak bude čas a podarí sa mi to rozbehať)
+
+####Rozšírenie schopností jayzka
+V prípade, že máme užitočnú zbierku barov, meňakov, furtov alebo fundušov, môžeme si ich odložiť do skladu. Keď ich opať budeme chcieť použiť, jazyku Šaral 2.0 to oznámime pomocou príkazu `falda` (sklad) nasledovaného menom skladu (meno súbora). Obsah tohto súbora sa vloží namiesto riadka s príkazom falda. Celé toto sa deje ešte v predspracovaní vstupu a pred lexikálnou analýzou.
