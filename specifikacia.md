@@ -2,6 +2,8 @@
 
 Môj návrh vychádza z jazyka Šaral, ktorého prezentáciu v "populárno-vedeckej" forme je možné nájsť napr. na http://www.trsek.com/sr/clanky/saral (odporúčam vypočuť si zvukovú nahrávku dostupnú v spodnej časti stránky).
 
+Platné identifikátory sú postupnosti malých a veľkých písmen, číslic a podtržníkov začínajúce písmenom alebo jedným podrtžníkom a písmenom, teda `_?[:letter:]([:digit:][:letter:]_)*`.
+
 ####Kľúčové slová:
 * `furt`
 * `meňak`
@@ -16,6 +18,7 @@ Môj návrh vychádza z jazyka Šaral, ktorého prezentáciu v "populárno-vedec
 * `numeralio`
 * `písmeno`
 * `slovo`
+* `inakši`
 * `bar`
 * `paľ do baru`
 * `vrac še z baru`
@@ -41,8 +44,8 @@ Kľúčové slová `dimenzion` a `stuj` v návrhu jazyka Šaral 2.0 ostávajú i
 
 ####Operátory
 * `+`, `-`, `*`, `/`, `:`, `%`
-* `&`, `|`, `!`, `^`, `a`, `alebo`, `ne` 
-* `==`, `<`, `>`, `<=`, `>=`, `!=`, `<>`
+* `a`, `alebo`, `ne` 
+* `==`, `<`, `>`, `<=`, `>=`, `<>`
 * `=`
 * `[]`
 
@@ -53,6 +56,9 @@ Kľúčové slová `dimenzion` a `stuj` v návrhu jazyka Šaral 2.0 ostávajú i
 * `písmeno`
 * `slovo`
 * `funduš`
+
+#####Trojhodnotová logika
+Jazyk Šaral (aj Šaral 2.0) používa trojhodnotovú logiku s hodnotami `pravda`, `ošaľ` a `skoroošaľ` zodpovedajúcimi hodnotam `True`, `False` a `Unknown` v Kleeneho logike. Pri vyhodnocovaní logických výrazov v podmienkach a cykloch sa podmienka vyhodnotí ako pravdivá jedine v prípade, ak je jej hodnota `Pravda`.
 
 ####Deklarácia premenných a konštánt
 ```
@@ -85,7 +91,7 @@ Odporúčané je používať prvý spôsob deklarácie, možnosti s kľúčovým
 #####Príklady
 ```
 funduš šč skutočné numeralio [3]
-meňal neskutočné numeralio N = 42
+meňak neskutočné numeralio N = 42
 dimenzion funduš fň logický [N][10]
 ```
 
@@ -109,9 +115,21 @@ bar typ názov(typ názov, typ názov, ...)
 Prvý bar nám nevracia nič, kým druhý bar po skončení svojej činnosti vráti jednu hodnotu, ktorá je rovnakého typu ako bar.
 Pokiaľ niekde chceme využiť služby, ktoré nám ponúkajú bary, použijeme buď kľúčovú konštrukciu `paľ do baru` alebo `vrac mi z baru`.
 
+#####Externé funkcie
+V jazyku Šaral 2.0 je možné použiť aj bary z cudzokrajných prostredí, v ktorých sa rozpráva iným jazykom (ak sú samozrejme v tých baroch  použité rovnaké typy, len inak nazvané, lebo cudzí jazyk). O našej snahe okoštovať takéto cudzie bary informujeme jazyk Šaral pomocou kunštrukcie
+
+```
+inakši bar názov(typ názov, typ názov, ...) 
+
+inakši bar typ názov(typ názov, typ názov, ...) 
+```
+
+
 #####Príklady
 ```
-bar ZámenaManželiek(neskutočné numerálio a, neskutočné numerálio b)
+inakši bar neskutočné numeralio puts(slovo s)
+
+bar ZámenaManželiek(neskutočné numeralio a, neskutočné numeralio b)
 	a = a + b
 	b = a - b
 	a = a - b
@@ -122,8 +140,8 @@ bar slovo SlovakPub()
 meňak slovo jedlo
 jedlo = vrac mi z baru SlovakPub()
 
-meňak neskutočné numerálio X = 500
-meňak neskutočné numerálio Y = 600
+meňak neskutočné numeralio X = 500
+meňak neskutočné numeralio Y = 600
 paľ do baru ZámenaManželiek(X, Y)
 ```
  
@@ -155,4 +173,4 @@ kým (furt alebo meňak) == (furt alebo meňak) rob
 kým (logický furt alebo meňak) rob
 	...
 ```
-Použitie druhej konštrukcie s logickým furtom je však odporúčané dobre si premyslieť.
+Je však prudko odporúčané dobre si premyslieť použitie druhej konštrukcie s logickým furtom.
