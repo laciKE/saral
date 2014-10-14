@@ -1,16 +1,16 @@
 meňak neskutočné numeralio N
 vežmi neskutočné numeralio N
-funduš logický prvočísla [N]
+furt neskutočné numeralio M = N + 1
+funduš logický prvočísla [M]
 
 meňak neskutočné numeralio i
-furt neskutočné numeralio M = N - 1
-zrob s meňakom i od 2 do M
+zrob s meňakom i od 2 do N
 	prvočísla[i] = pravda
 
-zrob s meňakom i od 2 do M
+zrob s meňakom i od 2 do N
 	keď prvočísla[i] potom
 		tiskaj neskutočný meňak i
 		meňak neskutočné numeralio w = i
-		kým w <= M rob
+		kým w <= N rob
 			prvočísla[w] = ošaľ
 			w = w + i
