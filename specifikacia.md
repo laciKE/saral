@@ -81,19 +81,19 @@ meňak písmeno trieda = 'A'
 
 ####Deklarácia polí
 ```
-funduš názov typ [rozmer]
-funduš názov typ [rozmer][rozmer]
+funduš typ názov [rozmer]
+funduš typ názov [rozmer][rozmer]
 
-dimenzion funduš názov typ [rozmer]
-dimenzion funduš názov typ [rozmer][rozmer]
+dimenzion funduš typ názov [rozmer]
+dimenzion funduš typ názov [rozmer][rozmer]
 ```
 Odporúčané je používať prvý spôsob deklarácie, možnosti s kľúčovým slovom `dimenzion` sú podporované iba kvôli zachovaniu spätnej kompatibility s jazykom Šaral. Rozmer musí byť meňak, furt alebo hodnota typu `neskutočné numerálio`.
 
 #####Príklady
 ```
-funduš šč skutočné numeralio [3]
+funduš skutočné numeralio šč [3]
 meňak neskutočné numeralio N = 42
-dimenzion funduš fň logický [N][10]
+dimenzion funduš logický fň [N][10]
 ```
 
 ####Definícia procedúr a funkcií
