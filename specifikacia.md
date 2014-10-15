@@ -178,8 +178,8 @@ Je však prudko odporúčané dobre si premyslieť použitie druhej konštrukcie
 
 ####Vstup a výstup
 #####stdin/stdout
-Ak chceme niečo vypísať, použijeme príkaz `tiskaj typ názov`, kde názov je názov meňaku alebo furtu, ktorý treba vypísať.
-Vstup sa načítava pomocou príkazu `vežmi typ názov`, kde názov je názov meňaku alebo furtu, ktorý treba vypísať.
+Ak chceme niečo vypísať, použijeme príkaz `ciskaj názov`, kde názov je názov meňaku alebo furtu, ktorý treba vypísať.
+Vstup sa načítava pomocou príkazu `vežmi názov`, kde názov je názov meňaku alebo furtu, ktorý treba načítať.
 
 #####nstdin/nstdout
 Pre počítače 8. generácie a ich (v dobe vytvorenia jazyka Šaral 1.0) nestandardný vstup a výstup má tento jazyk podporu aj pre inštrukcie `povidz typ názov` a `sluchaj typ názov`, ktoré možno budú podporované už v jazyku Šaral 2.0 (ak bude čas a podarí sa mi to rozbehať)

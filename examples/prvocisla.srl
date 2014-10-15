@@ -1,5 +1,5 @@
 meňak neskutočné numeralio N
-vežmi neskutočné numeralio N
+vežmi N
 furt neskutočné numeralio M = N + 1
 funduš logický prvočísla [M]
 
@@ -9,7 +9,7 @@ zrob s meňakom i od 2 do N
 
 zrob s meňakom i od 2 do N
 	keď prvočísla[i] potom
-		tiskaj neskutočný meňak i
+		ciskaj i
 		meňak neskutočné numeralio w = i
 		kým w <= N rob
 			prvočísla[w] = ošaľ
