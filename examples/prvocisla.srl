@@ -4,10 +4,10 @@ furt neskutočné numeralio M = N + 1
 funduš logický prvočísla [M]
 
 meňak neskutočné numeralio i
-zrob s meňakom i od 2 do N
+zrob s meňakom i od 2 do M
 	prvočísla[i] = pravda
 
-zrob s meňakom i od 2 do N
+zrob s meňakom i od 2 do M
 	keď prvočísla[i] potom
 		ciskaj i
 		meňak neskutočné numeralio w = i

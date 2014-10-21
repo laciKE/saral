@@ -115,6 +115,7 @@ bar typ názov(typ názov, typ názov, ...)
 
 Prvý bar nám nevracia nič, kým druhý bar po skončení svojej činnosti vráti jednu hodnotu, ktorá je rovnakého typu ako bar.
 Pokiaľ niekde chceme využiť služby, ktoré nám ponúkajú bary, použijeme buď kľúčovú konštrukciu `paľ do baru` alebo `vrac mi z baru`.
+*Funkcie berú ako argumenty referencie na premenné.*
 
 #####Externé funkcie
 V jazyku Šaral 2.0 je možné použiť aj bary z cudzokrajných prostredí, v ktorých sa rozpráva iným jazykom (ak sú samozrejme v tých baroch  použité rovnaké typy, len inak nazvané, lebo cudzí jazyk). O našej snahe okoštovať takéto cudzie bary informujeme jazyk Šaral pomocou kunštrukcie
@@ -166,6 +167,8 @@ Cyklus s pevným počtom opakovaní (tiež zvaný kolečko) zapíšeme nasledovn
 zrob s meňakom názov od (furt alebo meňak) do (furt alebo meňak)
 	...
 ```
+*premenná v cykle nadobúda hodnoty z intervalu <od;do)*
+
 While cyklus zapíšeme nasledovne:
 ```
 kým (furt alebo meňak) == (furt alebo meňak) rob
@@ -186,3 +189,6 @@ Pre počítače 8. generácie a ich (v dobe vytvorenia jazyka Šaral 1.0) nestan
 
 ####Rozšírenie schopností jayzka
 V prípade, že máme užitočnú zbierku barov, meňakov, furtov alebo fundušov, môžeme si ich odložiť do skladu. Keď ich opať budeme chcieť použiť, jazyku Šaral 2.0 to oznámime pomocou príkazu `falda` (sklad) nasledovaného menom skladu (meno súbora). Obsah tohto súbora sa vloží namiesto riadka s príkazom falda. Celé toto sa deje ešte v predspracovaní vstupu a pred lexikálnou analýzou.
+
+####*Platnosť premenných*
+*Premenné existujú v bloku, v ktorom boli definované. Premenné definované v najvyššom bloku sú globálne a všetky procedúry a funkcie k nim majú prístup*
