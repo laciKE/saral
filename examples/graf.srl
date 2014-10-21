@@ -1,0 +1,42 @@
+meňak neskutočné numeralio N
+meňak neskutočné numeralio M
+vežmi N
+vežmi M
+dimenzion funduš logický vrchol [N]
+dimenzion funduš logický hrana [N][N]
+
+meňak neskutočné numeralio i
+meňak neskutočné numeralio w
+zrob s meňakom i od 0 do N
+	vrchol[i] = ošaľ
+	zrob s meňakom w od 0 do N
+		hrana[i][w] = ošaľ
+
+meňak neskutočné numeralio a
+meňak neskutočné numeralio b
+zrob s meňakom i od 0 do M
+	vežmi a
+	vežmi b
+	hrana[a][b] = pravda
+	hrana[b][a] = pravda
+
+bar HlbokoHľadaj(neskutočné numeralio začiatok)
+	keď vrchol[začiatok] == ošaľ potom
+		vrchol[začiatok] = pravda
+		meňak neskutočné numeralio v
+		zrob s meňakom v od 0 do N
+			keď hrana[začiatok][v] potom
+				HlbokoHľadaj(v)
+
+paľ do baru HlbokoHľadaj(0)
+
+meňak logický súvislý = pravda
+zrob s meňakom i od 0 do N
+	súvislý = súvislý a vrchol[i]
+
+keď súvislý potom
+	furt slovo odpoveď = "ANO"
+	ciskaj odpoveď
+inak
+	furt slovo odpoveď = "NIE"
+	ciskaj odpoveď
