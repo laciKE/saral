@@ -1,0 +1,5 @@
+hello src/hello.cpp
+primes src/primes.cpp
+graph src/graph.cpp
+reverz src/reverz.cpp
+sort src/sort.cpp
