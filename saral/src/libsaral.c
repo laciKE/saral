@@ -10,9 +10,9 @@ void printFloat(float f) {
 
 void printBool(char b) {
 	switch (b) {
-		case -1: printf("Ošaľ\n"); break;
-		case  0: printf("Skoroošaľ\n"); break;
-		case  1: printf("Pravda\n"); break;
+		case -1: printf("ošaľ\n"); break;
+		case  0: printf("skoroošaľ\n"); break;
+		case  1: printf("pravda\n"); break;
 	}
 }
 
@@ -20,7 +20,7 @@ void printChar(char c) {
 	printf("%c\n", c);
 }
 
-void printString(char* s) {
+void printString(char *s) {
 	printf("%s\n", s);
 }
 
