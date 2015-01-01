@@ -21,7 +21,7 @@ $(PREPROCESSOR): $(PREPROCESSOR_SRCS)
 $(VISITOR): grammar/$(GRAMMAR)
 	cd grammar &&	$(ANTLR) $(GRAMMAR) -o ../src/ -visitor && cd ..
 
-$(COMPILER): $(COMPILER_SRCS) $(LIBS)
+$(COMPILER): $(VISITOR) $(COMPILER_SRCS) $(LIBS)
 	mkdir -p bin
 	javac src/*.java -d bin/
 
@@ -34,4 +34,4 @@ $(LIB_O): $(LIBS_SRCS)
 	gcc -fPIC $(LIBS_SRCS) -c -o $(LIB_O)
 
 clean:
-	rm -f -r bin/* lib/*
+	rm -f -r bin lib
