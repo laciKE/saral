@@ -12,11 +12,11 @@ void preprocess_source(char *filename) {
 	int line_number = 0;
 	
 	void print_line() {
-		if (line_number > 1) { //insert newline character after previous line
-			printf("\n%s", line);
-		} else {
+		//if (line_number > 1) { //insert newline character after previous line
+		//	printf("\n%s", line);
+		//} else {
 			printf("%s", line);
-		}
+		//}
 
 		return;
 	}
@@ -68,7 +68,7 @@ void preprocess_source(char *filename) {
 	if (fp != NULL) {
 		while (fgets(line, 1023, fp) != NULL) {
 			line_number++;
-			line[strlen(line)-1] = '\0'; //replace trailling newline with string terminator
+			//line[strlen(line)-1] = '\0'; //replace trailing newline with string terminator
 			indent_dedent();
 			expand_includes();
 		}

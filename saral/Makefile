@@ -12,7 +12,7 @@ LIBS_SRCS = src/libsaral.c
 
 default: $(COMPILER)
 
-all: $(VISITOR) $(LIBS) $(COMPILER)
+all: $(VISITOR) $(LIBS) $(PREPROCESSOR) $(COMPILER)
 
 $(PREPROCESSOR): $(PREPROCESSOR_SRCS)
 	mkdir -p bin
@@ -35,3 +35,4 @@ $(LIB_O): $(LIBS_SRCS)
 
 clean:
 	rm -f -r bin lib
+	rm -r src/Saral*.java src/Saral*.tokens

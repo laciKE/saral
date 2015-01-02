@@ -19,7 +19,7 @@ ret : RET expression;
 
 statement
 	: simple_statement EOL
-	| block_statement
+	| block_statement EOL?
 	;
 
 simple_statement
@@ -141,7 +141,7 @@ expression
 
 VARIABLE : 'meňak';
 CONST : 'furt';
-ARRAY : 'dimenzion'? 'funduš';
+ARRAY : 'dimenzion'? WS* 'funduš';
 WHILE : 'kým';
 DO : 'rob'; 
 FOR : 'zrob s meňakom';
@@ -195,12 +195,14 @@ FLOAT : NUMBER '.' DIGIT*;
 STRING : '"' (~'"' | EOL)* '"';
 CHAR : '\'' (~'\'') '\'';
 
-ID: '_'?('a'..'z' | 'A'..'Z')([a-zA-Z0-9])* ;
+ID : '_'?(LETTER)(LETTER | DIGIT | '_')* ;
+LETTER : [a-zA-ZľščťžýáíéäúôóďĺĽŠČŤŽÝÁÍÉÄÚÔÓĎĹ];
 
-EMPTY_LINE: {getCharPositionInLine()==0}? ((' '|'\t')* EOL) -> skip ;
 
-EOL: '\r'? '\n' | '\r';
-WS: (' ' | '\t')+ -> skip;
+EMPTY_LINE : {getCharPositionInLine()==0}? ((' '|'\t')* EOL) -> skip ;
+
+EOL : '\r'? '\n' | '\r';
+WS : (' ' | '\t')+ -> skip;
 
 NUMBER : '0' | [1-9]DIGIT*;
 DIGIT : [0-9];
