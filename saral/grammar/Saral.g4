@@ -4,15 +4,17 @@ INDENT : '__INDENT';
 DEDENT : '__DEDENT';
 
 init
-	: ((extern_func_declaration | extern_proc_declaration) EOL)* statement*
+	: ((extern_func_declaration | extern_proc_declaration) EOL)* statements
 	;
 
+statements : statement+;
+
 block
-	: INDENT statement+ DEDENT
+	: INDENT statements DEDENT
 	;
 
 func_block
-	: INDENT statement+ ret DEDENT
+	: INDENT statements ret DEDENT
 	;
 
 ret : RET expression;
@@ -26,7 +28,6 @@ simple_statement
 	: assignment
 	| var_declaration
 	| var_definition
-	| const_declaration
 	| const_definition
 	| array_declaration
 	| func_definition
@@ -105,16 +106,13 @@ param_list
 	;
 
 var_definition
-	: VARIABLE type ID ('=' expression)?
+	: VARIABLE type ID '=' expression
 	;
 var_declaration
 	: VARIABLE type ID
 	;
 const_definition
-	: CONST type ID ('=' expression)?
-	;
-const_declaration
-	: CONST type ID
+	: CONST type ID '=' expression
 	;
 array_declaration
 	: ARRAY type ID (LBRACK expression RBRACK)+
