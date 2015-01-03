@@ -442,8 +442,14 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 			return left;
 		}
 		String code_stub = "<ret> = <instruction> <type> <left_val>, <right_val>\n";
+		Type ret_type = left.getType();
 		String instruction = "or";
 		if ((left.getType() == Type.INT) || (left.getType() == Type.CHAR)) {
+			// cmp code stub
+			ST temp = new ST(
+					"<r1> = \\<instruction> \\<type> \\<left_val>, \\<right_val>\n"
+							+ "\\<ret> = select i1 <r1>, \\<ret_type> 1, \\<ret_type> -1\n");
+			temp.add("r1", this.generateNewRegister());
 			switch (operator) {
 			case SaralParser.ADD:
 				instruction = "add";
@@ -460,7 +466,7 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 			case SaralParser.AND:
 				instruction = "and";
 			case SaralParser.OR:
-				ST temp = new ST("<r1> = icmp ne \\<type> \\<left_val>, 0\n"
+				temp = new ST("<r1> = icmp ne \\<type> \\<left_val>, 0\n"
 						+ "<r2> = icmp ne \\<type> \\<right_val>, 0\n"
 						+ "<r3> = \\<instruction> i1 <r1>, <r2>\n"
 						+ "\\<ret> = zext i1 <r3> to \\<type>\n");
@@ -469,8 +475,43 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 				temp.add("r3", this.generateNewRegister());
 				code_stub = temp.render();
 				break;
+			case SaralParser.EQ:
+				instruction = "icmp eq";
+				ret_type = Type.BOOL;
+				code_stub = temp.render();
+				break;
+			case SaralParser.NE:
+				instruction = "icmp ne";
+				ret_type = Type.BOOL;
+				code_stub = temp.render();
+				break;
+			case SaralParser.LE:
+				instruction = "icmp sle";
+				ret_type = Type.BOOL;
+				code_stub = temp.render();
+				break;
+			case SaralParser.GE:
+				instruction = "icmp sge";
+				ret_type = Type.BOOL;
+				code_stub = temp.render();
+				break;
+			case SaralParser.GT:
+				instruction = "icmp sgt";
+				ret_type = Type.BOOL;
+				code_stub = temp.render();
+				break;
+			case SaralParser.LT:
+				instruction = "icmp slt";
+				ret_type = Type.BOOL;
+				code_stub = temp.render();
+				break;
 			}
 		} else if (left.getType() == Type.FLOAT) {
+			// cmp code stub
+			ST temp = new ST(
+					"<r1> = \\<instruction> \\<type> \\<left_val>, \\<right_val>\n"
+							+ "\\<ret> = select i1 <r1>, \\<ret_type> 1, \\<ret_type> -1\n");
+			temp.add("r1", this.generateNewRegister());
 			switch (operator) {
 			case SaralParser.ADD:
 				instruction = "fadd";
@@ -487,13 +528,43 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 			case SaralParser.AND:
 				instruction = "and";
 			case SaralParser.OR:
-				ST temp = new ST("<r1> = fcmp une \\<type> \\<left_val>, 0.0\n"
+				temp = new ST("<r1> = fcmp une \\<type> \\<left_val>, 0.0\n"
 						+ "<r2> = fcmp une \\<type> \\<right_val>, 0.0\n"
 						+ "<r3> = \\<instruction> i1 <r1>, <r2>\n"
 						+ "\\<ret> = uitofp i1 <r3> to \\<type>\n");
 				temp.add("r1", this.generateNewRegister());
 				temp.add("r2", this.generateNewRegister());
 				temp.add("r3", this.generateNewRegister());
+				code_stub = temp.render();
+				break;
+			case SaralParser.EQ:
+				instruction = "fcmp ueq";
+				ret_type = Type.BOOL;
+				code_stub = temp.render();
+				break;
+			case SaralParser.NE:
+				instruction = "fcmp une";
+				ret_type = Type.BOOL;
+				code_stub = temp.render();
+				break;
+			case SaralParser.LE:
+				instruction = "fcmp ule";
+				ret_type = Type.BOOL;
+				code_stub = temp.render();
+				break;
+			case SaralParser.GE:
+				instruction = "fcmp uge";
+				ret_type = Type.BOOL;
+				code_stub = temp.render();
+				break;
+			case SaralParser.GT:
+				instruction = "fcmp ugt";
+				ret_type = Type.BOOL;
+				code_stub = temp.render();
+				break;
+			case SaralParser.LT:
+				instruction = "fcmp ult";
+				ret_type = Type.BOOL;
 				code_stub = temp.render();
 				break;
 			}
@@ -534,11 +605,12 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 		template.add("right_val", right.getRegister());
 		String ret_register = this.generateNewRegister();
 		template.add("ret", ret_register);
+		template.add("ret_type", ret_type.getCode());
 
 		CodeFragment code = new CodeFragment();
 		code.setRegister(ret_register);
 		code.addCode(template.render());
-		code.setType(left.getType());
+		code.setType(ret_type);
 
 		return code;
 	}
@@ -641,7 +713,13 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 
 	@Override
 	public CodeFragment visitCompare(@NotNull SaralParser.CompareContext ctx) {
-		return visitChildren(ctx);
+		return generateBinaryOperatorCodeFragment(visit(ctx.expression(0)),
+				visit(ctx.expression(1)), ctx.op.getType());
+	}
+
+	@Override
+	public CodeFragment visitParen(@NotNull SaralParser.ParenContext ctx) {
+		return visit(ctx.expression());
 	}
 
 	@Override
@@ -714,11 +792,6 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 	@Override
 	public CodeFragment visitProc_definition(
 			@NotNull SaralParser.Proc_definitionContext ctx) {
-		return visitChildren(ctx);
-	}
-
-	@Override
-	public CodeFragment visitParen(@NotNull SaralParser.ParenContext ctx) {
 		return visitChildren(ctx);
 	}
 
