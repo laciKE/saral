@@ -2,11 +2,13 @@ public class CodeFragment {
 	private String code;
 	private String register;
 	private Type type;
+	private String comment;
 
 	public CodeFragment() {
 		this.code = "";
 		this.register = null;
 		this.type = null;
+		this.comment = "";
 	}
 
 	public void addCode(String code) {
@@ -41,5 +43,13 @@ public class CodeFragment {
 
 	public Type getType() {
 		return this.type;
+	}
+
+	public void addComment(String comment) {
+		this.comment += comment;
+	}
+
+	public String getComment() {
+		return this.comment;
 	}
 }

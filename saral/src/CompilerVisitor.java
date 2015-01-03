@@ -34,9 +34,8 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 		CodeFragment body = visit(ctx.statements());
 
 		ST template = new ST("declare i32 @printInt(i32)\n"
-				+ "declare i32 @iexp(i32, i32)\n" + "<function_declarations>"
-				+ "define i32 @main() {\n" + "start:\n" + "<body_code>"
-				+ "ret i32 0\n" + "}\n");
+				+ "<function_declarations>" + "define i32 @main() {\n"
+				+ "start:\n" + "<body_code>" + "ret i32 0\n" + "}\n");
 
 		template.add("function_declarations", function_declarations);
 		template.add("body_code", body);
@@ -125,9 +124,11 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 			String mem_register = this.generateNewRegister();
 			symbolTable.addVariable(new Variable(identifier, type,
 					mem_register, constant));
-			ST template = new ST("<mem_register> = alloca <type>\n");
+			ST template = new ST(
+					"<mem_register> = alloca <type> ; <comment> declaration\n");
 			template.add("mem_register", mem_register);
 			template.add("type", type.getCode());
+			template.add("comment", identifier);
 			code.addCode(template.render());
 			code.setRegister(mem_register);
 			code.setType(type);
@@ -137,7 +138,7 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 				varType = "constant";
 			}
 			throw new IllegalStateException(String.format(
-					"Error: '%s' '%s' already declared.", varType, identifier));
+					"Error: %s '%s' already declared.", varType, identifier));
 		}
 
 		return code;
@@ -147,14 +148,23 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 		CodeFragment code = new CodeFragment();
 		String mem_register = var.getRegister();
 		Type type = var.getType();
+		if (type != value.getType()) {
+			throw new IllegalStateException(
+					String.format(
+							"Error: incompatible types in assignment to '%s': '%s' and '%s'.",
+							var.getName(), type.getName(), value.getType()
+									.getName()));
+		}
 
-		ST template = new ST("<value_code>"
-				+ "store <type> <value_register>, <type>* <mem_register>\n");
+		ST template = new ST(
+				"<value_code>"
+						+ "store <type> <value_register>, <type>* <mem_register> ; <comment> assign\n");
 
 		template.add("value_code", value);
 		template.add("type", value.getType().getCode());
 		template.add("value_register", value.getRegister());
 		template.add("mem_register", mem_register);
+		template.add("comment", var.getName());
 
 		code.addCode(template.render());
 		code.setRegister(value.getRegister());
@@ -174,22 +184,7 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 	}
 
 	@Override
-	public CodeFragment visitValBool(@NotNull SaralParser.ValBoolContext ctx) {
-		return visitChildren(ctx);
-	}
-
-	@Override
-	public CodeFragment visitVarID(@NotNull SaralParser.VarIDContext ctx) {
-		return visitChildren(ctx);
-	}
-
-	@Override
 	public CodeFragment visitProc_call(@NotNull SaralParser.Proc_callContext ctx) {
-		return visitChildren(ctx);
-	}
-
-	@Override
-	public CodeFragment visitValFloat(@NotNull SaralParser.ValFloatContext ctx) {
 		return visitChildren(ctx);
 	}
 
@@ -218,11 +213,6 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 	@Override
 	public CodeFragment visitUnaryMinus(
 			@NotNull SaralParser.UnaryMinusContext ctx) {
-		return visitChildren(ctx);
-	}
-
-	@Override
-	public CodeFragment visitValChar(@NotNull SaralParser.ValCharContext ctx) {
 		return visitChildren(ctx);
 	}
 
@@ -264,6 +254,99 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 	}
 
 	@Override
+	public CodeFragment visitValue(@NotNull SaralParser.ValueContext ctx) {
+		return visitChildren(ctx);
+	}
+
+	@Override
+	public CodeFragment visitValVar(@NotNull SaralParser.ValVarContext ctx) {
+		CodeFragment code = visitChildren(ctx);
+		String register = generateNewRegister();
+
+		code.addCode(String.format("%s = load %s* %s ; %s value\n", register,
+				code.getType().getCode(), code.getRegister(), code.getComment()));
+		code.setRegister(register);
+		return code;
+	}
+
+	@Override
+	public CodeFragment visitVarID(@NotNull SaralParser.VarIDContext ctx) {
+		CodeFragment code = new CodeFragment();
+		String id = ctx.ID().getText();
+		Variable var = null;
+		if (!symbolTable.containsVariable(id)) {
+			throw new IllegalStateException(String.format(
+					"Error: identifier '%s' does not exists", id));
+		} else {
+			var = symbolTable.getVariable(id);
+		}
+		code.setType(var.getType());
+		code.setRegister(var.getRegister());
+		code.addComment(var.getName());
+
+		return code;
+	}
+
+	@Override
+	public CodeFragment visitValInt(@NotNull SaralParser.ValIntContext ctx) {
+		CodeFragment code = new CodeFragment();
+		String value = ctx.INT().getText();
+		Type type = Type.INT;
+		String register = generateNewRegister();
+		code.setRegister(register);
+		code.setType(type);
+		code.addCode(String.format("%s = add %s 0, %s\n", register,
+				type.getCode(), value));
+
+		return code;
+	}
+
+	@Override
+	public CodeFragment visitValFloat(@NotNull SaralParser.ValFloatContext ctx) {
+		CodeFragment code = new CodeFragment();
+		String value = ctx.FLOAT().getText();
+		Type type = Type.FLOAT;
+		String register = generateNewRegister();
+		code.setRegister(register);
+		code.setType(type);
+		code.addCode(String.format("%s = fadd %s 0.0, %s\n", register,
+				type.getCode(), value));
+
+		return code;
+	}
+
+	@Override
+	public CodeFragment visitValBool(@NotNull SaralParser.ValBoolContext ctx) {
+		CodeFragment code = new CodeFragment();
+		String valueName = ctx.BOOL().getText();
+		int value = Type.boolToValue(valueName);
+		Type type = Type.BOOL;
+		String register = generateNewRegister();
+		code.setRegister(register);
+		code.setType(type);
+		code.addCode(String.format("%s = add %s 0, %d ; %s\n", register,
+				type.getCode(), value, valueName));
+
+		return code;
+	}
+
+	@Override
+	public CodeFragment visitValChar(@NotNull SaralParser.ValCharContext ctx) {
+		CodeFragment code = new CodeFragment();
+		String valueName = ctx.CHAR().getText();
+		int value = Type.charToValue(valueName);
+		Type type = Type.CHAR;
+		String register = generateNewRegister();
+		code.setRegister(register);
+		code.setType(type);
+		code.addCode(String.format("%s = add %s 0, %d ; %s\n", register,
+				type.getCode(), value, valueName));
+
+		return code;
+
+	}
+
+	@Override
 	public CodeFragment visitFor_statement(
 			@NotNull SaralParser.For_statementContext ctx) {
 		return visitChildren(ctx);
@@ -287,11 +370,6 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 	}
 
 	@Override
-	public CodeFragment visitValue(@NotNull SaralParser.ValueContext ctx) {
-		return visitChildren(ctx);
-	}
-
-	@Override
 	public CodeFragment visitExtern_func_declaration(
 			@NotNull SaralParser.Extern_func_declarationContext ctx) {
 		return visitChildren(ctx);
@@ -305,16 +383,6 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 	@Override
 	public CodeFragment visitProc_definition(
 			@NotNull SaralParser.Proc_definitionContext ctx) {
-		return visitChildren(ctx);
-	}
-
-	@Override
-	public CodeFragment visitValVar(@NotNull SaralParser.ValVarContext ctx) {
-		return visitChildren(ctx);
-	}
-
-	@Override
-	public CodeFragment visitValInt(@NotNull SaralParser.ValIntContext ctx) {
 		return visitChildren(ctx);
 	}
 
