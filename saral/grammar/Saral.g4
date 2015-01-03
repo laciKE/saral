@@ -33,11 +33,10 @@ simple_statement
 	| func_definition
 	| proc_definition
 	| proc_call
-	| WRITE var
-	| READ var
-	| WRITE2 var
-	| READ2 var
-	| expression
+	| write
+	| read
+	| write2
+	| read2
 	;
 
 block_statement
@@ -105,6 +104,19 @@ param_list
 	: (expression (',' expression)*)?
 	;
 
+read
+	: 'vežmi' var
+	;
+write
+	: 'ciskaj' var
+	;
+read2
+	: 'sluchaj' var
+	;
+write2
+	: 'povidz' var
+	;
+
 var_definition
 	: VARIABLE type ID '=' expression
 	;
@@ -153,10 +165,6 @@ EXTERN : 'inakši';
 RET : 'vrac';
 FUNC_CALL : 'vrac mi z baru';
 PROC_CALL : 'paľ do baru';
-READ : 'vežmi';
-WRITE : 'ciskaj';
-READ2 : 'sluchaj';
-WRITE2 : 'povidz';
 
 LPAR : '(';
 RPAR : ')';

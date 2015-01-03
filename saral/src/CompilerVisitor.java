@@ -33,9 +33,18 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 	public CodeFragment visitInit(@NotNull SaralParser.InitContext ctx) {
 		CodeFragment body = visit(ctx.statements());
 
-		ST template = new ST("declare i32 @printInt(i32)\n"
-				+ "<function_declarations>" + "define i32 @main() {\n"
-				+ "start:\n" + "<body_code>" + "ret i32 0\n" + "}\n");
+		ST template = new ST("declare i32 @printInt(i32*)\n"
+				+ "declare i32 @printChar(i8*)\n"
+				+ "declare i32 @printBool(i2*)\n"
+				+ "declare i32 @printFloat(float*)\n"
+				+ "declare i32 @printString(i8*)\n"
+				+ "declare i32 @scanInt(i32*)\n"
+				+ "declare i32 @scanChar(i8*)\n"
+				+ "declare i32 @scanBool(i2*)\n"
+				+ "declare i32 @scanFloat(float*)\n"
+				+ "declare i32 @scanString(i8*)\n" + "<function_declarations>"
+				+ "define i32 @main() {\n" + "start:\n" + "<body_code>"
+				+ "ret i32 0\n" + "}\n");
 
 		template.add("function_declarations", function_declarations);
 		template.add("body_code", body);
@@ -110,7 +119,8 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 		CodeFragment code = variableDeclaration(identifier, type, false);
 		Variable var = symbolTable.getVariable(identifier);
 		CodeFragment value = visit(valueExp);
-		CodeFragment assign = generateAssign(var, value);
+		CodeFragment assign = generateAssign(var.getName(), var.getType(),
+				var.getRegister(), value);
 		code.appendCode(assign);
 
 		return code;
@@ -144,15 +154,21 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 		return code;
 	}
 
-	private CodeFragment generateAssign(Variable var, CodeFragment value) {
+	@Override
+	public CodeFragment visitArray_declaration(
+			@NotNull SaralParser.Array_declarationContext ctx) {
+		return visitChildren(ctx);
+	}
+
+	private CodeFragment generateAssign(String varName, Type varType,
+			String varRegister, CodeFragment value) {
 		CodeFragment code = new CodeFragment();
-		String mem_register = var.getRegister();
-		Type type = var.getType();
-		if (type != value.getType()) {
+		;
+		if (varType != value.getType()) {
 			throw new IllegalStateException(
 					String.format(
 							"Error: incompatible types in assignment to '%s': '%s' and '%s'.",
-							var.getName(), type.getName(), value.getType()
+							varName, varType.getName(), value.getType()
 									.getName()));
 		}
 
@@ -163,8 +179,8 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 		template.add("value_code", value);
 		template.add("type", value.getType().getCode());
 		template.add("value_register", value.getRegister());
-		template.add("mem_register", mem_register);
-		template.add("comment", var.getName());
+		template.add("mem_register", varRegister);
+		template.add("comment", varName);
 
 		code.addCode(template.render());
 		code.setRegister(value.getRegister());
@@ -174,66 +190,17 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 	}
 
 	@Override
-	public CodeFragment visitArglist(@NotNull SaralParser.ArglistContext ctx) {
-		return visitChildren(ctx);
-	}
+	public CodeFragment visitAssignment(
+			@NotNull SaralParser.AssignmentContext ctx) {
+		CodeFragment code = new CodeFragment();
+		CodeFragment lvalue = visit(ctx.var());
+		code.addCode(lvalue);
+		CodeFragment rvalue = visit(ctx.expression());
+		CodeFragment assign = generateAssign(lvalue.getComment(),
+				lvalue.getType(), lvalue.getRegister(), rvalue);
+		code.appendCode(assign);
 
-	@Override
-	public CodeFragment visitRet(@NotNull SaralParser.RetContext ctx) {
-		return visitChildren(ctx);
-	}
-
-	@Override
-	public CodeFragment visitProc_call(@NotNull SaralParser.Proc_callContext ctx) {
-		return visitChildren(ctx);
-	}
-
-	@Override
-	public CodeFragment visitIf_statement(
-			@NotNull SaralParser.If_statementContext ctx) {
-		return visitChildren(ctx);
-	}
-
-	@Override
-	public CodeFragment visitBlock(@NotNull SaralParser.BlockContext ctx) {
-		return visitChildren(ctx);
-	}
-
-	@Override
-	public CodeFragment visitWhile_statement(
-			@NotNull SaralParser.While_statementContext ctx) {
-		return visitChildren(ctx);
-	}
-
-	@Override
-	public CodeFragment visitCompare(@NotNull SaralParser.CompareContext ctx) {
-		return visitChildren(ctx);
-	}
-
-	@Override
-	public CodeFragment visitUnaryMinus(
-			@NotNull SaralParser.UnaryMinusContext ctx) {
-		return visitChildren(ctx);
-	}
-
-	@Override
-	public CodeFragment visitBoolNot(@NotNull SaralParser.BoolNotContext ctx) {
-		return visitChildren(ctx);
-	}
-
-	@Override
-	public CodeFragment visitMul(@NotNull SaralParser.MulContext ctx) {
-		return visitChildren(ctx);
-	}
-
-	@Override
-	public CodeFragment visitFunc(@NotNull SaralParser.FuncContext ctx) {
-		return visitChildren(ctx);
-	}
-
-	@Override
-	public CodeFragment visitAdd(@NotNull SaralParser.AddContext ctx) {
-		return visitChildren(ctx);
+		return code;
 	}
 
 	@Override
@@ -251,6 +218,11 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 		}
 
 		return code;
+	}
+
+	@Override
+	public CodeFragment visitTypeArray(@NotNull SaralParser.TypeArrayContext ctx) {
+		return visitChildren(ctx);
 	}
 
 	@Override
@@ -347,19 +319,193 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 	}
 
 	@Override
+	public CodeFragment visitValString(@NotNull SaralParser.ValStringContext ctx) {
+		return visitChildren(ctx);
+	}
+
+	// TODO
+	@Override
+	public CodeFragment visitVarArray(@NotNull SaralParser.VarArrayContext ctx) {
+		return visit(ctx.var());
+	}
+
+	@Override
+	public CodeFragment visitWrite(@NotNull SaralParser.WriteContext ctx) {
+		CodeFragment code = new CodeFragment();
+		CodeFragment varCode = visit(ctx.var());
+
+		String func = "";
+		Type type = varCode.getType();
+		switch (type) {
+		case INT:
+			func = "printInt";
+			break;
+		case BOOL:
+			func = "printBool";
+			break;
+		case CHAR:
+			func = "printChar";
+			break;
+		case FLOAT:
+			func = "printFloat";
+			break;
+		default:
+			break;
+		// TODO STRING
+		}
+
+		ST template = new ST("<value_code>"
+				+ "call i32 @<func> (<type>* <value>)\n");
+		template.add("value_code", varCode);
+		template.add("func", func);
+		template.add("type", type.getCode());
+		template.add("value", varCode.getRegister());
+		code.addCode(template.render());
+
+		return code;
+	}
+
+	@Override
+	public CodeFragment visitWrite2(@NotNull SaralParser.Write2Context ctx) {
+		CodeFragment code = new CodeFragment();
+		System.err
+				.println("Warning: command 'povidz' is not supported in this version of Šaral");
+		return code;
+	}
+
+	@Override
+	public CodeFragment visitRead(@NotNull SaralParser.ReadContext ctx) {
+		CodeFragment code = new CodeFragment();
+		CodeFragment varCode = visit(ctx.var());
+
+		String func = "";
+		Type type = varCode.getType();
+		switch (type) {
+		case INT:
+			func = "scanInt";
+			break;
+		case BOOL:
+			func = "scanBool";
+			break;
+		case CHAR:
+			func = "scanChar";
+			break;
+		case FLOAT:
+			func = "scanFloat";
+			break;
+		default:
+			break;
+		// TODO STRING
+		}
+
+		ST template = new ST("<value_code>"
+				+ "call i32 @<func> (<type>* <value>)\n");
+		template.add("value_code", varCode);
+		template.add("func", func);
+		template.add("type", type.getCode());
+		template.add("value", varCode.getRegister());
+		code.addCode(template.render());
+
+		return code;
+
+	}
+
+	@Override
+	public CodeFragment visitRead2(@NotNull SaralParser.Read2Context ctx) {
+		CodeFragment code = new CodeFragment();
+		System.err
+				.println("Warning: command 'sluchaj' is not supported in this version of Šaral");
+		return code;
+	}
+
+	@Override
+	public CodeFragment visitUnaryMinus(
+			@NotNull SaralParser.UnaryMinusContext ctx) {
+		return visitChildren(ctx);
+	}
+
+	@Override
+	public CodeFragment visitBoolNot(@NotNull SaralParser.BoolNotContext ctx) {
+		return visitChildren(ctx);
+	}
+
+	@Override
+	public CodeFragment visitBoolOr(@NotNull SaralParser.BoolOrContext ctx) {
+		return visitChildren(ctx);
+	}
+
+	@Override
+	public CodeFragment visitBoolAnd(@NotNull SaralParser.BoolAndContext ctx) {
+		return visitChildren(ctx);
+	}
+
+	@Override
+	public CodeFragment visitAdd(@NotNull SaralParser.AddContext ctx) {
+		return visitChildren(ctx);
+	}
+
+	@Override
+	public CodeFragment visitMul(@NotNull SaralParser.MulContext ctx) {
+		return visitChildren(ctx);
+	}
+
+	@Override
+	public CodeFragment visitCompare(@NotNull SaralParser.CompareContext ctx) {
+		return visitChildren(ctx);
+	}
+
+	@Override
+	public CodeFragment visitIf_statement(
+			@NotNull SaralParser.If_statementContext ctx) {
+		return visitChildren(ctx);
+	}
+
+	@Override
+	public CodeFragment visitWhile_statement(
+			@NotNull SaralParser.While_statementContext ctx) {
+		return visitChildren(ctx);
+	}
+
+	@Override
 	public CodeFragment visitFor_statement(
 			@NotNull SaralParser.For_statementContext ctx) {
 		return visitChildren(ctx);
 	}
 
 	@Override
-	public CodeFragment visitExtern_proc_declaration(
-			@NotNull SaralParser.Extern_proc_declarationContext ctx) {
+	public CodeFragment visitBlock(@NotNull SaralParser.BlockContext ctx) {
 		return visitChildren(ctx);
 	}
 
 	@Override
-	public CodeFragment visitBoolOr(@NotNull SaralParser.BoolOrContext ctx) {
+	public CodeFragment visitArglist(@NotNull SaralParser.ArglistContext ctx) {
+		return visitChildren(ctx);
+	}
+
+	@Override
+	public CodeFragment visitParam_list(
+			@NotNull SaralParser.Param_listContext ctx) {
+		return visitChildren(ctx);
+	}
+
+	@Override
+	public CodeFragment visitRet(@NotNull SaralParser.RetContext ctx) {
+		return visitChildren(ctx);
+	}
+
+	@Override
+	public CodeFragment visitProc_call(@NotNull SaralParser.Proc_callContext ctx) {
+		return visitChildren(ctx);
+	}
+
+	@Override
+	public CodeFragment visitFunc(@NotNull SaralParser.FuncContext ctx) {
+		return visitChildren(ctx);
+	}
+
+	@Override
+	public CodeFragment visitExtern_proc_declaration(
+			@NotNull SaralParser.Extern_proc_declarationContext ctx) {
 		return visitChildren(ctx);
 	}
 
@@ -376,41 +522,13 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 	}
 
 	@Override
-	public CodeFragment visitVarArray(@NotNull SaralParser.VarArrayContext ctx) {
-		return visitChildren(ctx);
-	}
-
-	@Override
 	public CodeFragment visitProc_definition(
 			@NotNull SaralParser.Proc_definitionContext ctx) {
 		return visitChildren(ctx);
 	}
 
 	@Override
-	public CodeFragment visitBoolAnd(@NotNull SaralParser.BoolAndContext ctx) {
-		return visitChildren(ctx);
-	}
-
-	@Override
-	public CodeFragment visitArray_declaration(
-			@NotNull SaralParser.Array_declarationContext ctx) {
-		return visitChildren(ctx);
-	}
-
-	@Override
 	public CodeFragment visitParen(@NotNull SaralParser.ParenContext ctx) {
-		return visitChildren(ctx);
-	}
-
-	@Override
-	public CodeFragment visitParam_list(
-			@NotNull SaralParser.Param_listContext ctx) {
-		return visitChildren(ctx);
-	}
-
-	@Override
-	public CodeFragment visitAssignment(
-			@NotNull SaralParser.AssignmentContext ctx) {
 		return visitChildren(ctx);
 	}
 
@@ -426,18 +544,8 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 	}
 
 	@Override
-	public CodeFragment visitValString(@NotNull SaralParser.ValStringContext ctx) {
-		return visitChildren(ctx);
-	}
-
-	@Override
 	public CodeFragment visitBlock_statement(
 			@NotNull SaralParser.Block_statementContext ctx) {
-		return visitChildren(ctx);
-	}
-
-	@Override
-	public CodeFragment visitTypeArray(@NotNull SaralParser.TypeArrayContext ctx) {
 		return visitChildren(ctx);
 	}
 
