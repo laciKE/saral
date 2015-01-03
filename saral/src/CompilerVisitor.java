@@ -756,7 +756,27 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 	@Override
 	public CodeFragment visitWhile_statement(
 			@NotNull SaralParser.While_statementContext ctx) {
-		return visitChildren(ctx);
+		CodeFragment code = new CodeFragment();
+		CodeFragment condition = visit(ctx.expression());
+		CodeFragment block = visit(ctx.block());
+		ST template = new ST("br label %<cmp_label>\n" + "<cmp_label>:\n"
+				+ "<condition_code>"
+				+ "<cmp_reg> = icmp eq <con_type> <con_reg>, 1\n"
+				+ "br i1 <cmp_reg>, label %<block>, label %<block_end>\n"
+				+ "<block>:\n" + "<block_code>" + "br label %<cmp_label>\n"
+				+ "<block_end>:\n");
+		template.add("cmp_label", generateNewLabel());
+		template.add("condition_code", condition);
+		template.add("cmp_reg", generateNewRegister());
+		template.add("con_type", condition.getType().getCode());
+		template.add("con_reg", condition.getRegister());
+		template.add("block", generateNewLabel());
+		template.add("block_end", generateNewLabel());
+		template.add("block_code", block);
+
+		code.addCode(template.render());
+
+		return code;
 	}
 
 	@Override
