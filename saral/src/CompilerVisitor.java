@@ -163,11 +163,12 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 		CodeFragment code = new CodeFragment();
 		Type type = var.getType();
 		if (type != value.getType()) {
-			throw new IllegalStateException(
-					String.format(
-							"Error: incompatible types in assignment to '%s': '%s' and '%s'.",
-							var.getName(), type.getName(), value.getType()
-									.getName()));
+			System.err
+					.println(String
+							.format("Error: incompatible types in assignment to '%s': '%s' and '%s'.",
+									var.getName(), type.getName(), value
+											.getType().getName()));
+			return value;
 		}
 
 		ST template = new ST(
@@ -432,35 +433,210 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 		return code;
 	}
 
+	public CodeFragment generateBinaryOperatorCodeFragment(CodeFragment left,
+			CodeFragment right, Integer operator) {
+		if (left.getType() != right.getType()) {
+			System.err.println(String.format(
+					"Error: incompatible types '%s' and '%s'", left.getType()
+							.getName(), right.getType().getName()));
+			return left;
+		}
+		String code_stub = "<ret> = <instruction> <type> <left_val>, <right_val>\n";
+		String instruction = "or";
+		if ((left.getType() == Type.INT) || (left.getType() == Type.CHAR)) {
+			switch (operator) {
+			case SaralParser.ADD:
+				instruction = "add";
+				break;
+			case SaralParser.SUB:
+				instruction = "sub";
+				break;
+			case SaralParser.MUL:
+				instruction = "mul";
+				break;
+			case SaralParser.DIV:
+				instruction = "sdiv";
+				break;
+			case SaralParser.AND:
+				instruction = "and";
+			case SaralParser.OR:
+				ST temp = new ST("<r1> = icmp ne \\<type> \\<left_val>, 0\n"
+						+ "<r2> = icmp ne \\<type> \\<right_val>, 0\n"
+						+ "<r3> = \\<instruction> i1 <r1>, <r2>\n"
+						+ "\\<ret> = zext i1 <r3> to \\<type>\n");
+				temp.add("r1", this.generateNewRegister());
+				temp.add("r2", this.generateNewRegister());
+				temp.add("r3", this.generateNewRegister());
+				code_stub = temp.render();
+				break;
+			}
+		} else if (left.getType() == Type.FLOAT) {
+			switch (operator) {
+			case SaralParser.ADD:
+				instruction = "fadd";
+				break;
+			case SaralParser.SUB:
+				instruction = "fsub";
+				break;
+			case SaralParser.MUL:
+				instruction = "fmul";
+				break;
+			case SaralParser.DIV:
+				instruction = "fdiv";
+				break;
+			case SaralParser.AND:
+				instruction = "and";
+			case SaralParser.OR:
+				ST temp = new ST("<r1> = fcmp une \\<type> \\<left_val>, 0.0\n"
+						+ "<r2> = fcmp une \\<type> \\<right_val>, 0.0\n"
+						+ "<r3> = \\<instruction> i1 <r1>, <r2>\n"
+						+ "\\<ret> = uitofp i1 <r3> to \\<type>\n");
+				temp.add("r1", this.generateNewRegister());
+				temp.add("r2", this.generateNewRegister());
+				temp.add("r3", this.generateNewRegister());
+				code_stub = temp.render();
+				break;
+			}
+		} else if (left.getType() == Type.BOOL) {
+			// three-value kleene logic
+			instruction = "select";
+			String condition = "sgt";
+			switch (operator) {
+			case SaralParser.AND:
+				condition = "slt";
+			case SaralParser.OR:
+				ST temp = new ST(
+						"<r1> = icmp <condition> \\<type> \\<left_val>, \\<right_val>\n"
+								+ "\\<ret> = select i1 <r1>, \\<type> \\<left_val>, \\<type> \\<right_val>\n");
+				temp.add("r1", this.generateNewRegister());
+				temp.add("condition", condition);
+				code_stub = temp.render();
+				break;
+			default:
+				System.err.println(String.format(
+						"Error: Unsupported binary operator for type '%s'",
+						left.getType().getName()));
+				return new CodeFragment();
+			}
+		} else {
+			System.err.println(String.format(
+					"Error: Unsupported type '%s' for binary operator", left
+							.getType().getName()));
+			return left;
+		}
+
+		ST template = new ST("<left_code>" + "<right_code>" + code_stub);
+		template.add("left_code", left);
+		template.add("right_code", right);
+		template.add("instruction", instruction);
+		template.add("type", left.getType().getCode());
+		template.add("left_val", left.getRegister());
+		template.add("right_val", right.getRegister());
+		String ret_register = this.generateNewRegister();
+		template.add("ret", ret_register);
+
+		CodeFragment code = new CodeFragment();
+		code.setRegister(ret_register);
+		code.addCode(template.render());
+		code.setType(left.getType());
+
+		return code;
+	}
+
+	public CodeFragment generateUnaryOperatorCodeFragment(CodeFragment value,
+			Integer operator) {
+		String code_stub = "";
+		if ((value.getType() == Type.INT) || (value.getType() == Type.CHAR)) {
+			switch (operator) {
+			case SaralParser.SUB:
+				code_stub = "<ret> = sub <type> 0, <input>\n";
+				break;
+			case SaralParser.NOT:
+				ST temp = new ST("<r> = icmp eq <type> \\<input>, 0\n"
+						+ "\\<ret> = zext i1 <r> to <type>\n");
+				temp.add("r", this.generateNewRegister());
+				code_stub = temp.render();
+				break;
+			}
+		} else if (value.getType() == Type.FLOAT) {
+			switch (operator) {
+			case SaralParser.SUB:
+				code_stub = "<ret> = fsub <type> 0.0, <input>\n";
+				break;
+			case SaralParser.NOT:
+				ST temp = new ST("<r> = fcmp ueq <type> \\<input>, 0.0\n"
+						+ "\\<ret> = uitofp i1 <r> to <type>\n");
+				temp.add("r", this.generateNewRegister());
+				code_stub = temp.render();
+				break;
+			}
+		} else if (value.getType() == Type.BOOL) {
+			switch (operator) {
+			case SaralParser.NOT:
+				code_stub = "<ret> = sub <type> 0, <input>\n";
+				break;
+			default:
+				System.err.println(String.format(
+						"Error: Unsupported unary operator for type '%s'",
+						value.getType().getName()));
+				return new CodeFragment();
+			}
+		} else {
+			System.err.println(String.format(
+					"Error: Unsupported type '%s' for unary operator", value
+							.getType().getName()));
+			return value;
+		}
+		ST template = new ST("<value>" + code_stub);
+		String ret_register = this.generateNewRegister();
+		template.add("value", value);
+		template.add("ret", ret_register);
+		template.add("type", value.getType().getCode());
+		template.add("input", value.getRegister());
+
+		CodeFragment code = new CodeFragment();
+		code.setRegister(ret_register);
+		code.addCode(template.render());
+		code.setType(value.getType());
+
+		return code;
+	}
+
 	@Override
 	public CodeFragment visitUnaryMinus(
 			@NotNull SaralParser.UnaryMinusContext ctx) {
-		return visitChildren(ctx);
+		return generateUnaryOperatorCodeFragment(visit(ctx.expression()),
+				ctx.op.getType());
 	}
 
 	@Override
 	public CodeFragment visitBoolNot(@NotNull SaralParser.BoolNotContext ctx) {
-		return visitChildren(ctx);
+		return generateUnaryOperatorCodeFragment(visit(ctx.expression()),
+				ctx.op.getType());
 	}
 
 	@Override
 	public CodeFragment visitBoolOr(@NotNull SaralParser.BoolOrContext ctx) {
-		return visitChildren(ctx);
+		return generateBinaryOperatorCodeFragment(visit(ctx.expression(0)),
+				visit(ctx.expression(1)), ctx.op.getType());
 	}
 
 	@Override
 	public CodeFragment visitBoolAnd(@NotNull SaralParser.BoolAndContext ctx) {
-		return visitChildren(ctx);
+		return generateBinaryOperatorCodeFragment(visit(ctx.expression(0)),
+				visit(ctx.expression(1)), ctx.op.getType());
 	}
 
 	@Override
 	public CodeFragment visitAdd(@NotNull SaralParser.AddContext ctx) {
-		return visitChildren(ctx);
+		return generateBinaryOperatorCodeFragment(visit(ctx.expression(0)),
+				visit(ctx.expression(1)), ctx.op.getType());
 	}
 
 	@Override
 	public CodeFragment visitMul(@NotNull SaralParser.MulContext ctx) {
-		return visitChildren(ctx);
+		return generateBinaryOperatorCodeFragment(visit(ctx.expression(0)),
+				visit(ctx.expression(1)), ctx.op.getType());
 	}
 
 	@Override
