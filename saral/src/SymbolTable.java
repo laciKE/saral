@@ -43,6 +43,10 @@ public class SymbolTable {
 		}
 	}
 
+	public boolean currentTableContainsVariable(String identifier) {
+		return variables.get(0).containsKey(identifier);
+	}
+
 	protected Map<String, Variable> getTableWithVariable(String identifier) {
 		for (Map<String, Variable> table : variables) {
 			if (table.containsKey(identifier)) {

@@ -129,7 +129,7 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 			boolean constant) {
 		CodeFragment code = new CodeFragment();
 
-		if (!symbolTable.containsVariable(identifier)) {
+		if (!symbolTable.currentTableContainsVariable(identifier)) {
 			String mem_register = this.generateNewRegister();
 			symbolTable.addVariable(new Variable(identifier, type,
 					mem_register, constant));
@@ -725,7 +725,32 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 	@Override
 	public CodeFragment visitIf_statement(
 			@NotNull SaralParser.If_statementContext ctx) {
-		return visitChildren(ctx);
+		CodeFragment code = new CodeFragment();
+		CodeFragment condition = visit(ctx.expression());
+		CodeFragment block_true = visit(ctx.block(0));
+		CodeFragment block_false = visit(ctx.block(1));
+		ST template = new ST(
+				"<condition_code>"
+						+ "<cmp_reg> = icmp eq <con_type> <con_reg>, 1\n"
+						+ "br i1 <cmp_reg>, label %<block_true>, label %<block_false>\n"
+						+ "<block_true>:\n" + "<block_true_code>"
+						+ "br label %<block_end>\n" + "<block_false>:\n"
+						+ "<block_false_code>" + "br label %<block_end>\n"
+						+ "<block_end>:\n");
+		template.add("condition_code", condition);
+		template.add("block_true_code", block_true);
+		template.add("block_false_code", block_false);
+		template.add("cmp_reg", this.generateNewRegister());
+		template.add("con_type", condition.getType().getCode());
+		template.add("con_reg", condition.getRegister());
+		template.add("block_true", this.generateNewLabel());
+		template.add("block_false", this.generateNewLabel());
+		template.add("block_end", this.generateNewLabel());
+		String return_register = generateNewRegister();
+
+		code.addCode(template.render());
+
+		return code;
 	}
 
 	@Override
@@ -742,7 +767,11 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 
 	@Override
 	public CodeFragment visitBlock(@NotNull SaralParser.BlockContext ctx) {
-		return visitChildren(ctx);
+		symbolTable.addTable();
+		CodeFragment body = visit(ctx.statements());
+		symbolTable.removeTable();
+
+		return body;
 	}
 
 	@Override
