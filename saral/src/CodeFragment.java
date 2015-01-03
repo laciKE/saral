@@ -3,12 +3,14 @@ public class CodeFragment {
 	private String register;
 	private Type type;
 	private String comment;
+	private Variable variable;
 
 	public CodeFragment() {
 		this.code = "";
 		this.register = null;
 		this.type = null;
 		this.comment = "";
+		this.variable = null;
 	}
 
 	public void addCode(String code) {
@@ -23,6 +25,7 @@ public class CodeFragment {
 		this.addCode(fragment);
 		this.setRegister(fragment.getRegister());
 		this.setType(fragment.getType());
+		this.setVariable(fragment.getVariable());
 	}
 
 	public String toString() {
@@ -51,5 +54,13 @@ public class CodeFragment {
 
 	public String getComment() {
 		return this.comment;
+	}
+
+	public void setVariable(Variable variable) {
+		this.variable = variable;
+	}
+
+	public Variable getVariable() {
+		return this.variable;
 	}
 }

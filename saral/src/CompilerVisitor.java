@@ -116,11 +116,10 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 
 	private CodeFragment variableDefinition(String identifier, Type type,
 			boolean constant, SaralParser.ExpressionContext valueExp) {
-		CodeFragment code = variableDeclaration(identifier, type, false);
+		CodeFragment code = variableDeclaration(identifier, type, constant);
 		Variable var = symbolTable.getVariable(identifier);
 		CodeFragment value = visit(valueExp);
-		CodeFragment assign = generateAssign(var.getName(), var.getType(),
-				var.getRegister(), value);
+		CodeFragment assign = generateAssign(var, value);
 		code.appendCode(assign);
 
 		return code;
@@ -160,15 +159,14 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 		return visitChildren(ctx);
 	}
 
-	private CodeFragment generateAssign(String varName, Type varType,
-			String varRegister, CodeFragment value) {
+	private CodeFragment generateAssign(Variable var, CodeFragment value) {
 		CodeFragment code = new CodeFragment();
-		;
-		if (varType != value.getType()) {
+		Type type = var.getType();
+		if (type != value.getType()) {
 			throw new IllegalStateException(
 					String.format(
 							"Error: incompatible types in assignment to '%s': '%s' and '%s'.",
-							varName, varType.getName(), value.getType()
+							var.getName(), type.getName(), value.getType()
 									.getName()));
 		}
 
@@ -179,8 +177,8 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 		template.add("value_code", value);
 		template.add("type", value.getType().getCode());
 		template.add("value_register", value.getRegister());
-		template.add("mem_register", varRegister);
-		template.add("comment", varName);
+		template.add("mem_register", var.getRegister());
+		template.add("comment", var.getName());
 
 		code.addCode(template.render());
 		code.setRegister(value.getRegister());
@@ -194,10 +192,18 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 			@NotNull SaralParser.AssignmentContext ctx) {
 		CodeFragment code = new CodeFragment();
 		CodeFragment lvalue = visit(ctx.var());
+		Variable var = lvalue.getVariable();
+
+		if (var.isConstant()) {
+			System.err
+					.println(String
+							.format("Warning: '%s' was declared as constant, assignment ignored.",
+									var.getName()));
+			return code;
+		}
 		code.addCode(lvalue);
 		CodeFragment rvalue = visit(ctx.expression());
-		CodeFragment assign = generateAssign(lvalue.getComment(),
-				lvalue.getType(), lvalue.getRegister(), rvalue);
+		CodeFragment assign = generateAssign(var, rvalue);
 		code.appendCode(assign);
 
 		return code;
@@ -255,6 +261,7 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 		code.setType(var.getType());
 		code.setRegister(var.getRegister());
 		code.addComment(var.getName());
+		code.setVariable(var);
 
 		return code;
 	}
@@ -377,6 +384,14 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 	public CodeFragment visitRead(@NotNull SaralParser.ReadContext ctx) {
 		CodeFragment code = new CodeFragment();
 		CodeFragment varCode = visit(ctx.var());
+		Variable var = varCode.getVariable();
+
+		if (var.isConstant()) {
+			System.err.println(String.format(
+					"Warning: '%s' was declared as constant, reading ignored.",
+					var.getName()));
+			return code;
+		}
 
 		String func = "";
 		Type type = varCode.getType();
@@ -407,7 +422,6 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 		code.addCode(template.render());
 
 		return code;
-
 	}
 
 	@Override
