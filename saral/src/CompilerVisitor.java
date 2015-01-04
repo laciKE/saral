@@ -728,7 +728,12 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 		CodeFragment code = new CodeFragment();
 		CodeFragment condition = visit(ctx.expression());
 		CodeFragment block_true = visit(ctx.block(0));
-		CodeFragment block_false = visit(ctx.block(1));
+		CodeFragment block_false;
+		if (ctx.block().size() == 1) { // missing else block
+			block_false = new CodeFragment();
+		} else {
+			block_false = visit(ctx.block(1));
+		}
 		ST template = new ST(
 				"<condition_code>"
 						+ "<cmp_reg> = icmp eq <con_type> <con_reg>, 1\n"
