@@ -239,12 +239,21 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 
 	@Override
 	public CodeFragment visitValVar(@NotNull SaralParser.ValVarContext ctx) {
-		CodeFragment code = visitChildren(ctx);
-		String register = generateNewRegister();
+		CodeFragment code = new CodeFragment();
+		CodeFragment var = visitChildren(ctx);
+		code.appendCode(valVar(var.getVariable()));
 
+		return code;
+	}
+
+	public CodeFragment valVar(Variable var) {
+		CodeFragment code = new CodeFragment();
+		String register = generateNewRegister();
 		code.addCode(String.format("%s = load %s* %s ; %s value\n", register,
-				code.getType().getCode(), code.getRegister(), code.getComment()));
+				var.getType().getCode(), var.getRegister(), var.getName()));
 		code.setRegister(register);
+		code.setType(var.getType());
+
 		return code;
 	}
 
@@ -624,8 +633,8 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 				code_stub = "<ret> = sub <type> 0, <input>\n";
 				break;
 			case SaralParser.NOT:
-				ST temp = new ST("<r> = icmp eq <type> \\<input>, 0\n"
-						+ "\\<ret> = zext i1 <r> to <type>\n");
+				ST temp = new ST("<r> = icmp eq \\<type> \\<input>, 0\n"
+						+ "\\<ret> = zext i1 <r> to \\<type>\n");
 				temp.add("r", this.generateNewRegister());
 				code_stub = temp.render();
 				break;
@@ -636,8 +645,8 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 				code_stub = "<ret> = fsub <type> 0.0, <input>\n";
 				break;
 			case SaralParser.NOT:
-				ST temp = new ST("<r> = fcmp ueq <type> \\<input>, 0.0\n"
-						+ "\\<ret> = uitofp i1 <r> to <type>\n");
+				ST temp = new ST("<r> = fcmp ueq \\<type> \\<input>, 0.0\n"
+						+ "\\<ret> = uitofp i1 <r> to \\<type>\n");
 				temp.add("r", this.generateNewRegister());
 				code_stub = temp.render();
 				break;
@@ -764,12 +773,13 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 		CodeFragment code = new CodeFragment();
 		CodeFragment condition = visit(ctx.expression());
 		CodeFragment block = visit(ctx.block());
-		ST template = new ST("br label %<cmp_label>\n" + "<cmp_label>:\n"
-				+ "<condition_code>"
+		ST template = new ST("br label %<cmp_label>\n"
+				+ "<cmp_label>: ; cmp condition\n" + "<condition_code>"
 				+ "<cmp_reg> = icmp eq <con_type> <con_reg>, 1\n"
 				+ "br i1 <cmp_reg>, label %<block>, label %<block_end>\n"
-				+ "<block>:\n" + "<block_code>" + "br label %<cmp_label>\n"
-				+ "<block_end>:\n");
+				+ "<block>: ; while block\n" + "<block_code>"
+				+ "br label %<cmp_label>\n"
+				+ "<block_end>: ; while block end\n");
 		template.add("cmp_label", generateNewLabel());
 		template.add("condition_code", condition);
 		template.add("cmp_reg", generateNewRegister());
@@ -787,7 +797,54 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 	@Override
 	public CodeFragment visitFor_statement(
 			@NotNull SaralParser.For_statementContext ctx) {
-		return visitChildren(ctx);
+		CodeFragment code = new CodeFragment();
+		CodeFragment var = visit(ctx.var());
+		CodeFragment start_value = visit(ctx.val(0));
+		CodeFragment stop_value = visit(ctx.val(1));
+		if ((var.getType() != start_value.getType())
+				|| (var.getType() != stop_value.getType())) {
+			System.err
+					.println(String
+							.format("Error: incompatible types in for cycle: variable '%s', values '%s' and '%s'.",
+									var.getType().getName(), start_value
+											.getType().getName(), stop_value
+											.getType().getName()));
+			return code;
+		}
+		CodeFragment block = visit(ctx.block());
+		CodeFragment init_assign = generateAssign(var.getVariable(),
+				start_value);
+		CodeFragment value_neg = generateUnaryOperatorCodeFragment(
+				valVar(var.getVariable()), SaralParser.NOT);
+		CodeFragment one = generateBinaryOperatorCodeFragment(
+				valVar(var.getVariable()), value_neg, SaralParser.OR);
+		CodeFragment incValVar = generateBinaryOperatorCodeFragment(
+				valVar(var.getVariable()), one, SaralParser.ADD);
+		CodeFragment increment = generateAssign(var.getVariable(), incValVar);
+		CodeFragment condition = generateBinaryOperatorCodeFragment(
+				valVar(var.getVariable()), stop_value, SaralParser.LE);
+		ST template = new ST("; for cycle init assign\n<init_assign>"
+				+ "br label %<cmp_label>\n" + "<cmp_label>: ; cmp condition\n"
+				+ "<condition_code>"
+				+ "<cmp_reg> = icmp eq <con_type> <con_reg>, 1\n"
+				+ "br i1 <cmp_reg>, label %<block>, label %<block_end>\n"
+				+ "<block>: ; for block\n" + "<block_code>"
+				+ "; increment\n<increment>" + "br label %<cmp_label>\n"
+				+ "<block_end>: ; for block end\n");
+		template.add("init_assign", init_assign);
+		template.add("cmp_label", generateNewLabel());
+		template.add("condition_code", condition);
+		template.add("cmp_reg", generateNewRegister());
+		template.add("con_type", condition.getType().getCode());
+		template.add("con_reg", condition.getRegister());
+		template.add("block", generateNewLabel());
+		template.add("block_end", generateNewLabel());
+		template.add("block_code", block);
+		template.add("increment", increment);
+
+		code.addCode(template.render());
+
+		return code;
 	}
 
 	@Override

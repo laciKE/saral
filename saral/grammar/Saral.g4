@@ -73,7 +73,7 @@ while_statement
 	;
 
 for_statement
-	: FOR ID FROM val TO val EOL block
+	: FOR var FROM val TO val EOL block
 	;
 
 
