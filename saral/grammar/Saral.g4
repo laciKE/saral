@@ -48,7 +48,7 @@ block_statement
 
 var 
 	: ID # VarID
-	| var LBRACK expression RBRACK #VarArray
+	| ID LBRACK expression RBRACK #VarArray
 	;
 
 val 
@@ -127,7 +127,7 @@ const_definition
 	: CONST type ID '=' expression
 	;
 array_declaration
-	: ARRAY type ID (LBRACK expression RBRACK)+
+	: ARRAY type ID LBRACK expression RBRACK
 	;
 
 

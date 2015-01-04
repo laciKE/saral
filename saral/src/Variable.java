@@ -3,23 +3,37 @@ public class Variable {
 	private Type type;
 	private String register;
 	private boolean constant = false;
+	private boolean array = false;
 
 	public Variable(String name, Type type, String register) {
-        this.name=name;
-        this.type=type;
-        this.register=register;
-    }
-	
-	public Variable(String name, Type type, String register, boolean constant) {
-        this.name=name;
-        this.type=type;
-        this.register=register;
-        this.constant = constant;
-	}	
-	public boolean isConstant(){
+		this.name = name;
+		this.type = type;
+		this.register = register;
+		if (type == Type.STRING) {
+			this.array = true;
+		}
+	}
+
+	public Variable(String name, Type type, String register, boolean constant,
+			boolean array) {
+		this.name = name;
+		this.type = type;
+		this.register = register;
+		this.constant = constant;
+		this.array = array;
+		if (type == Type.STRING) {
+			this.array = true;
+		}
+	}
+
+	public boolean isConstant() {
 		return constant;
 	}
-	
+
+	public boolean isArray() {
+		return array;
+	}
+
 	public String getName() {
 		return this.name;
 	}

@@ -132,7 +132,7 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 		if (!symbolTable.currentTableContainsVariable(identifier)) {
 			String mem_register = this.generateNewRegister();
 			symbolTable.addVariable(new Variable(identifier, type,
-					mem_register, constant));
+					mem_register, constant, false));
 			ST template = new ST(
 					"<mem_register> = alloca <type> ; <comment> declaration\n");
 			template.add("mem_register", mem_register);
@@ -241,6 +241,7 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 	public CodeFragment visitValVar(@NotNull SaralParser.ValVarContext ctx) {
 		CodeFragment code = new CodeFragment();
 		CodeFragment var = visitChildren(ctx);
+		code.appendCode(var);
 		code.appendCode(valVar(var.getVariable()));
 
 		return code;
@@ -340,10 +341,48 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 		return visitChildren(ctx);
 	}
 
-	// TODO
 	@Override
 	public CodeFragment visitVarArray(@NotNull SaralParser.VarArrayContext ctx) {
-		return visit(ctx.var());
+		CodeFragment code = new CodeFragment();
+		String id = ctx.ID().getText();
+		Variable var = null;
+		if (!symbolTable.containsVariable(id)) {
+			throw new IllegalStateException(String.format(
+					"Error: identifier '%s' does not exists", id));
+		} else {
+			var = symbolTable.getVariable(id);
+		}
+		if (!var.isArray()) {
+			System.err.println(String.format(
+					"Warning: variable '%s' is not an array type, be carefull...", id));
+		}
+		CodeFragment index = visit(ctx.expression());
+		Type indexType = index.getType();
+		if (!((indexType == Type.INT) || (indexType == Type.CHAR))) {
+			throw new IllegalStateException(String.format(
+					"Error: unsupported index type: '%s'", indexType.getName()));
+		}
+
+		String mem_register = this.generateNewRegister();
+		ST template = new ST(
+				"<index_code>"
+						+ "<ret> = getelementptr <type>* <ptr>, <index_type> <index_reg> \n");
+		template.add("index_code", index);
+		template.add("index_type", indexType.getCode());
+		template.add("index_reg", index.getRegister());
+		template.add("type", var.getType().getCode());
+		template.add("ptr", var.getRegister());
+		template.add("ret", mem_register);
+
+		code.addCode(template.render());
+		code.setType(var.getType());
+		code.setRegister(mem_register);
+		Variable elementVar = new Variable(String.format("%s[%s]",
+				var.getName(), ctx.expression().getText()), var.getType(),
+				mem_register);
+		code.setVariable(elementVar);
+
+		return code;
 	}
 
 	@Override
