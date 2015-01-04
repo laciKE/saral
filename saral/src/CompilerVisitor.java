@@ -42,7 +42,8 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 				+ "declare i32 @scanChar(i8*)\n"
 				+ "declare i32 @scanBool(i2*)\n"
 				+ "declare i32 @scanFloat(float*)\n"
-				+ "declare i32 @scanString(i8**)\n" + "<function_declarations>"
+				+ "declare i32 @scanString(i8**)\n"
+				+ "declare i8* @strConcat(i8*, i8*)\n" + "<function_declarations>"
 				+ "define i32 @main() {\n" + "start:\n" + "<body_code>"
 				+ "ret i32 0\n" + "}\n");
 
@@ -699,6 +700,18 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 				temp.add("r1", this.generateNewRegister());
 				temp.add("condition", condition);
 				code_stub = temp.render();
+				break;
+			default:
+				System.err.println(String.format(
+						"Error: Unsupported binary operator for type '%s'",
+						left.getType().getName()));
+				return new CodeFragment();
+			}
+		} else if (left.getType() == Type.STRING) {
+			switch (operator) {
+			case SaralParser.ADD:
+				instruction = "@strConcat";
+				code_stub = "<ret> = call <type> <instruction>(<type> <left_val>, <type> <right_val>)\n";
 				break;
 			default:
 				System.err.println(String.format(

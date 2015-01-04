@@ -64,6 +64,15 @@ void scanString(char **s) {
 	*s = str;
 }
 
+char * strConcat(char *a, char *b) {
+	int len = strlen(a) + strlen(b) + 1;
+	char *ret = (char *) malloc(len);
+	strcpy(ret, a);
+	strcat(ret, b);
+
+	return ret;
+}
+
 /*
 int main() {
 	int a = 47;
