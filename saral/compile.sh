@@ -17,4 +17,4 @@ llc $1.opt.bc -o $1.s && \
 #lli -load=$DIR/lib/libsaral.so $1.opt.bc
 gcc $DIR/lib/libsaral.o $1.s -o $output && \
 strip $output
-rm -f $1.prep $1.ll $1.opt.ll $1.opt.bc $1.s
+#rm -f $1.prep $1.ll $1.opt.ll $1.opt.bc $1.s

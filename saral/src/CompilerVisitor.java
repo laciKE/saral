@@ -37,12 +37,12 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 				+ "declare i32 @printChar(i8*)\n"
 				+ "declare i32 @printBool(i2*)\n"
 				+ "declare i32 @printFloat(float*)\n"
-				+ "declare i32 @printString(i8*)\n"
+				+ "declare i32 @printString(i8**)\n"
 				+ "declare i32 @scanInt(i32*)\n"
 				+ "declare i32 @scanChar(i8*)\n"
 				+ "declare i32 @scanBool(i2*)\n"
 				+ "declare i32 @scanFloat(float*)\n"
-				+ "declare i32 @scanString(i8*)\n" + "<function_declarations>"
+				+ "declare i32 @scanString(i8**)\n" + "<function_declarations>"
 				+ "define i32 @main() {\n" + "start:\n" + "<body_code>"
 				+ "ret i32 0\n" + "}\n");
 
@@ -171,7 +171,8 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 		Type type = visit(ctx.typeArray()).getType();
 		String id = ctx.ID().getText();
 		CodeFragment numElements = visit(ctx.expression());
-		CodeFragment code = variableDeclaration(id, type, false, true, numElements);
+		CodeFragment code = variableDeclaration(id, type, false, true,
+				numElements);
 
 		return code;
 	}
@@ -239,6 +240,8 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 			code.setType(Type.CHAR);
 		} else if (t.equals("logický")) {
 			code.setType(Type.BOOL);
+		} else if (t.equals("slovo")) {
+			code.setType(Type.STRING);
 		}
 
 		return code;
@@ -341,7 +344,7 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 	public CodeFragment visitValChar(@NotNull SaralParser.ValCharContext ctx) {
 		CodeFragment code = new CodeFragment();
 		String valueName = ctx.CHAR().getText();
-		int value = Type.charToValue(valueName);
+		int value = Type.charToValue(valueName.charAt(1));
 		Type type = Type.CHAR;
 		String register = generateNewRegister();
 		code.setRegister(register);
@@ -350,12 +353,38 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 				type.getCode(), value, valueName));
 
 		return code;
-
 	}
 
 	@Override
 	public CodeFragment visitValString(@NotNull SaralParser.ValStringContext ctx) {
-		return visitChildren(ctx);
+		CodeFragment code = new CodeFragment();
+		String valueName = ctx.STRING().getText();
+		String stringPtr = generateNewRegister();
+
+		code.addCode(String.format("%s = alloca %s , i32 %d ; %s\n", stringPtr,
+				Type.CHAR.getCode(), valueName.length() - 2 + 1, // bez ""
+				valueName));
+		code.setRegister(stringPtr);
+		code.setType(Type.STRING);
+
+		for (int i = 1; i <= valueName.length() - 1; i++) {
+			char ch = i < valueName.length() - 1 ? valueName.charAt(i) : '\0';
+			int value = Type.charToValue(ch);
+			Type type = Type.CHAR;
+			ST template = new ST(
+					"<mem_register> = getelementptr <type>* <ptr>, i32 <index>\n"
+							+ "store <type> <value>, <type>* <mem_register> ; <value_name>\n");
+			template.add("index", i - 1);
+			template.add("type", type.getCode());
+			template.add("ptr", stringPtr);
+			template.add("mem_register", this.generateNewRegister());
+			template.add("value", value);
+			template.add("value_name", ch);
+
+			code.addCode(template.render());
+		}
+
+		return code;
 	}
 
 	@Override
@@ -424,9 +453,11 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 		case FLOAT:
 			func = "printFloat";
 			break;
+		case STRING:
+			func = "printString";
+			break;
 		default:
 			break;
-		// TODO STRING
 		}
 
 		ST template = new ST("<value_code>"
@@ -476,9 +507,11 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 		case FLOAT:
 			func = "scanFloat";
 			break;
+		case STRING:
+			func = "scanString";
+			break;
 		default:
 			break;
-		// TODO STRING
 		}
 
 		ST template = new ST("<value_code>"

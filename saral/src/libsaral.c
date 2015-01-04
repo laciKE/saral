@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -22,8 +23,8 @@ void printChar(char *c) {
 	printf("%c\n", *c);
 }
 
-void printString(char *s) {
-	printf("%s\n", s);
+void printString(char **s) {
+	printf("%s\n", *s);
 }
 
 void scanInt(int *a) {
@@ -52,8 +53,15 @@ void scanChar(char *c) {
 	scanf(" %c", c);
 }
 
-void scanString(char *s) {
-	scanf(" %s", s);
+void scanString(char **s) {
+	scanf(" ");
+	char buf[1024];
+	fgets(buf, sizeof(buf), stdin);
+	int buf_len = strlen(buf);
+	buf[buf_len-1] = '\0';
+	char *str = (char *) malloc(buf_len);
+	strncpy(str, buf, buf_len-1);
+	*s = str;
 }
 
 /*
