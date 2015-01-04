@@ -414,10 +414,9 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 		String mem_register = this.generateNewRegister();
 		String ptr_register = var.getRegister();
 		Type type = var.getType();
-		if (!var.isArray() && var.getType()==Type.STRING) {
+		if (!var.isArray() && var.getType() == Type.STRING) {
 			ptr_register = this.generateNewRegister();
-			ST temp = new ST(
-					"<ptr_register> = load <type>* <ptr> ; string\n");
+			ST temp = new ST("<ptr_register> = load <type>* <ptr> ; string\n");
 			temp.add("type", type.getCode());
 			temp.add("ptr_register", ptr_register);
 			temp.add("ptr", var.getRegister());
@@ -439,8 +438,7 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 		code.setType(type);
 		code.setRegister(mem_register);
 		Variable elementVar = new Variable(String.format("%s[%s]",
-				var.getName(), ctx.expression().getText()), type,
-				mem_register);
+				var.getName(), ctx.expression().getText()), type, mem_register);
 		code.setVariable(elementVar);
 
 		return code;
@@ -576,6 +574,9 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 			case SaralParser.DIV:
 				instruction = "sdiv";
 				break;
+			case SaralParser.MOD:
+				instruction = "srem";
+				break;
 			case SaralParser.AND:
 				instruction = "and";
 			case SaralParser.OR:
@@ -637,6 +638,9 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 				break;
 			case SaralParser.DIV:
 				instruction = "fdiv";
+				break;
+			case SaralParser.MOD:
+				instruction = "frem";
 				break;
 			case SaralParser.AND:
 				instruction = "and";

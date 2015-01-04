@@ -1,3 +1,5 @@
 primes examples/prvocisla.srl
 graph examples/graf.srl
 sort examples/sort.srl
+hello examples/hello.srl
+reverz examples/reverz.srl

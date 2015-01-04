@@ -145,7 +145,7 @@ expression
 	: LPAR expression RPAR # Paren
 	| func_call # Func
 	| op=SUB expression # UnaryMinus
-	| expression op=(MUL | DIV | IDIV | MOD) expression # Mul
+	| expression op=(MUL | DIV | MOD) expression # Mul
 	| expression op=(ADD | SUB) expression # Add
 	| expression op=(EQ | NE | LE | GE | GT | LT) expression # Compare
 	| op=NOT expression # BoolNot
@@ -183,8 +183,7 @@ NOT : 'ne';
 ADD: '+';
 SUB: '-';
 MUL: '*';
-DIV: '/';
-IDIV: ':';
+DIV: '/' | ':';
 MOD: '%';
 
 EQ: '==';
