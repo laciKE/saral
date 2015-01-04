@@ -87,7 +87,7 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 			@NotNull SaralParser.Var_declarationContext ctx) {
 		Type type = visit(ctx.type()).getType();
 		String id = ctx.ID().getText();
-		CodeFragment code = variableDeclaration(id, type, false);
+		CodeFragment code = variableDeclaration(id, type, false, false, null);
 
 		return code;
 	}
@@ -116,7 +116,8 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 
 	private CodeFragment variableDefinition(String identifier, Type type,
 			boolean constant, SaralParser.ExpressionContext valueExp) {
-		CodeFragment code = variableDeclaration(identifier, type, constant);
+		CodeFragment code = variableDeclaration(identifier, type, constant,
+				false, null);
 		Variable var = symbolTable.getVariable(identifier);
 		CodeFragment value = visit(valueExp);
 		CodeFragment assign = generateAssign(var, value);
@@ -126,15 +127,26 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 	}
 
 	private CodeFragment variableDeclaration(String identifier, Type type,
-			boolean constant) {
+			boolean constant, boolean array, CodeFragment numElements) {
 		CodeFragment code = new CodeFragment();
 
 		if (!symbolTable.currentTableContainsVariable(identifier)) {
 			String mem_register = this.generateNewRegister();
 			symbolTable.addVariable(new Variable(identifier, type,
-					mem_register, constant, false));
+					mem_register, constant, array));
+			String numElementsVal;
+			if (array) {
+				numElementsVal = numElements.getRegister();
+			} else {
+				numElementsVal = "1";
+				numElements = new CodeFragment();
+			}
+
 			ST template = new ST(
-					"<mem_register> = alloca <type> ; <comment> declaration\n");
+					"<num_elements_code>"
+							+ "<mem_register> = alloca <type>, i32 <num_elements>; <comment> declaration\n");
+			template.add("num_elements_code", numElements);
+			template.add("num_elements", numElementsVal);
 			template.add("mem_register", mem_register);
 			template.add("type", type.getCode());
 			template.add("comment", identifier);
@@ -156,7 +168,12 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 	@Override
 	public CodeFragment visitArray_declaration(
 			@NotNull SaralParser.Array_declarationContext ctx) {
-		return visitChildren(ctx);
+		Type type = visit(ctx.typeArray()).getType();
+		String id = ctx.ID().getText();
+		CodeFragment numElements = visit(ctx.expression());
+		CodeFragment code = variableDeclaration(id, type, false, true, numElements);
+
+		return code;
 	}
 
 	private CodeFragment generateAssign(Variable var, CodeFragment value) {
@@ -353,8 +370,10 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 			var = symbolTable.getVariable(id);
 		}
 		if (!var.isArray()) {
-			System.err.println(String.format(
-					"Warning: variable '%s' is not an array type, be carefull...", id));
+			System.err
+					.println(String
+							.format("Warning: variable '%s' is not an array type, be carefull...",
+									id));
 		}
 		CodeFragment index = visit(ctx.expression());
 		Type indexType = index.getType();
@@ -861,7 +880,7 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 				valVar(var.getVariable()), one, SaralParser.ADD);
 		CodeFragment increment = generateAssign(var.getVariable(), incValVar);
 		CodeFragment condition = generateBinaryOperatorCodeFragment(
-				valVar(var.getVariable()), stop_value, SaralParser.LE);
+				valVar(var.getVariable()), stop_value, SaralParser.LT);
 		ST template = new ST("; for cycle init assign\n<init_assign>"
 				+ "br label %<cmp_label>\n" + "<cmp_label>: ; cmp condition\n"
 				+ "<condition_code>"

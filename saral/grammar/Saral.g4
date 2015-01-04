@@ -127,15 +127,20 @@ const_definition
 	: CONST type ID '=' expression
 	;
 array_declaration
-	: ARRAY type ID LBRACK expression RBRACK
+	: typeArray ID LBRACK expression RBRACK
 	;
 
-
-type
-	: ARRAY type # typeArray
-	| (INT_T | BOOL_T | FLOAT_T | CHAR_T | STRING_T) # typeBasic
+type 
+	: typeArray
+	| typeBasic
 	;
-
+typeArray
+	: ARRAY typeBasic
+	;
+typeBasic
+	: INT_T | BOOL_T | FLOAT_T | CHAR_T | STRING_T
+	;
+	
 expression
 	: LPAR expression RPAR # Paren
 	| func_call # Func

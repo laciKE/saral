@@ -1,3 +1,3 @@
-primes examples/primes.srl
-graph examples/graph.srl
+primes examples/prvocisla.srl
+graph examples/graf.srl
 sort examples/sort.srl
