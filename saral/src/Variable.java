@@ -9,9 +9,6 @@ public class Variable {
 		this.name = name;
 		this.type = type;
 		this.register = register;
-		if (type == Type.STRING) {
-			this.array = true;
-		}
 	}
 
 	public Variable(String name, Type type, String register, boolean constant,
@@ -21,9 +18,6 @@ public class Variable {
 		this.register = register;
 		this.constant = constant;
 		this.array = array;
-		if (type == Type.STRING) {
-			this.array = true;
-		}
 	}
 
 	public boolean isConstant() {

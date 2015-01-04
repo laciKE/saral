@@ -398,7 +398,7 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 		} else {
 			var = symbolTable.getVariable(id);
 		}
-		if (!var.isArray()) {
+		if (!(var.isArray() || var.getType() == Type.STRING)) {
 			System.err
 					.println(String
 							.format("Warning: variable '%s' is not an array type, be carefull...",
@@ -412,21 +412,34 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 		}
 
 		String mem_register = this.generateNewRegister();
+		String ptr_register = var.getRegister();
+		Type type = var.getType();
+		if (!var.isArray() && var.getType()==Type.STRING) {
+			ptr_register = this.generateNewRegister();
+			ST temp = new ST(
+					"<ptr_register> = load <type>* <ptr> ; string\n");
+			temp.add("type", type.getCode());
+			temp.add("ptr_register", ptr_register);
+			temp.add("ptr", var.getRegister());
+
+			type = Type.CHAR;
+			code.addCode(temp.render());
+		}
 		ST template = new ST(
 				"<index_code>"
 						+ "<ret> = getelementptr <type>* <ptr>, <index_type> <index_reg> \n");
 		template.add("index_code", index);
 		template.add("index_type", indexType.getCode());
 		template.add("index_reg", index.getRegister());
-		template.add("type", var.getType().getCode());
-		template.add("ptr", var.getRegister());
+		template.add("type", type.getCode());
+		template.add("ptr", ptr_register);
 		template.add("ret", mem_register);
 
 		code.addCode(template.render());
-		code.setType(var.getType());
+		code.setType(type);
 		code.setRegister(mem_register);
 		Variable elementVar = new Variable(String.format("%s[%s]",
-				var.getName(), ctx.expression().getText()), var.getType(),
+				var.getName(), ctx.expression().getText()), type,
 				mem_register);
 		code.setVariable(elementVar);
 
