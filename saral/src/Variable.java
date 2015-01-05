@@ -6,9 +6,7 @@ public class Variable {
 	private boolean array = false;
 
 	public Variable(String name, Type type, String register) {
-		this.name = name;
-		this.type = type;
-		this.register = register;
+		this(name, type, register, false, false);
 	}
 
 	public Variable(String name, Type type, String register, boolean constant,

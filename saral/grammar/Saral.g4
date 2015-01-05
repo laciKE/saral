@@ -17,7 +17,7 @@ func_block
 	: INDENT statements ret DEDENT
 	;
 
-ret : RET expression;
+ret : RET expression EOL;
 
 statement
 	: simple_statement EOL
@@ -78,30 +78,30 @@ for_statement
 
 
 func_definition
-	: FUNCTION type ID LPAR arglist RPAR EOL func_block
+	: FUNCTION typeBasic ID LPAR arglist RPAR EOL func_block
 	;
 proc_definition
 	: FUNCTION ID LPAR arglist RPAR EOL block
 	;
 extern_func_declaration
-	: EXTERN FUNCTION type ID LPAR arglist RPAR
+	: EXTERN FUNCTION typeBasic ID LPAR arglist RPAR
 	;
 extern_proc_declaration
 	: EXTERN FUNCTION ID LPAR arglist RPAR
 	;
 
 func_call
-	: FUNC_CALL ID LPAR param_list RPAR
+	: FUNC_CALL ID LPAR paramlist RPAR
 	;
 proc_call
-	: PROC_CALL ID LPAR param_list RPAR
+	: PROC_CALL ID LPAR paramlist RPAR
 	;
 
 arglist
 	: (type ID (',' type ID)*)?
 	;
-param_list
-	: (expression (',' expression)*)?
+paramlist
+	: (var (',' var)*)?
 	;
 
 read

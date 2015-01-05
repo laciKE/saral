@@ -1,5 +1,7 @@
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
 
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.AbstractParseTreeVisitor;
@@ -10,7 +12,7 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 	private int labelIndex = 0;
 	private int registerIndex = 0;
 	private int functionIndex = 0;
-	CodeFragment function_declarations = new CodeFragment();
+	CodeFragment functionDeclarations = new CodeFragment();
 
 	public CompilerVisitor() {
 		super();
@@ -31,6 +33,18 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 
 	@Override
 	public CodeFragment visitInit(@NotNull SaralParser.InitContext ctx) {
+		CodeFragment externFunctionDeclarations = new CodeFragment();
+		for (SaralParser.Extern_proc_declarationContext extFn : ctx
+				.extern_proc_declaration()) {
+			CodeFragment decl = visit(extFn);
+			externFunctionDeclarations.addCode(decl);
+		}
+		for (SaralParser.Extern_func_declarationContext extFn : ctx
+				.extern_func_declaration()) {
+			CodeFragment decl = visit(extFn);
+			externFunctionDeclarations.addCode(decl);
+		}
+
 		CodeFragment body = visit(ctx.statements());
 
 		ST template = new ST("declare i32 @printInt(i32*)\n"
@@ -43,11 +57,13 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 				+ "declare i32 @scanBool(i2*)\n"
 				+ "declare i32 @scanFloat(float*)\n"
 				+ "declare i32 @scanString(i8**)\n"
-				+ "declare i8* @strConcat(i8*, i8*)\n" + "<function_declarations>"
+				+ "declare i8* @strConcat(i8*, i8*)\n\n"
+				+ "<extern_function_declarations>\n" + "<function_declarations>\n"
 				+ "define i32 @main() {\n" + "start:\n" + "<body_code>"
 				+ "ret i32 0\n" + "}\n");
 
-		template.add("function_declarations", function_declarations);
+		template.add("extern_function_declarations", externFunctionDeclarations);
+		template.add("function_declarations", functionDeclarations);
 		template.add("body_code", body);
 
 		CodeFragment code = new CodeFragment();
@@ -115,7 +131,7 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 		return code;
 	}
 
-	private CodeFragment variableDefinition(String identifier, Type type,
+	protected CodeFragment variableDefinition(String identifier, Type type,
 			boolean constant, SaralParser.ExpressionContext valueExp) {
 		CodeFragment code = variableDeclaration(identifier, type, constant,
 				false, null);
@@ -127,7 +143,7 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 		return code;
 	}
 
-	private CodeFragment variableDeclaration(String identifier, Type type,
+	protected CodeFragment variableDeclaration(String identifier, Type type,
 			boolean constant, boolean array, CodeFragment numElements) {
 		CodeFragment code = new CodeFragment();
 
@@ -178,7 +194,7 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 		return code;
 	}
 
-	private CodeFragment generateAssign(Variable var, CodeFragment value) {
+	protected CodeFragment generateAssign(Variable var, CodeFragment value) {
 		CodeFragment code = new CodeFragment();
 		Type type = var.getType();
 		if (type != value.getType()) {
@@ -210,6 +226,7 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 	@Override
 	public CodeFragment visitAssignment(
 			@NotNull SaralParser.AssignmentContext ctx) {
+		// TODO restrict array assignment
 		CodeFragment code = new CodeFragment();
 		CodeFragment lvalue = visit(ctx.var());
 		Variable var = lvalue.getVariable();
@@ -545,8 +562,8 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 		return code;
 	}
 
-	public CodeFragment generateBinaryOperatorCodeFragment(CodeFragment left,
-			CodeFragment right, Integer operator) {
+	protected CodeFragment generateBinaryOperatorCodeFragment(
+			CodeFragment left, CodeFragment right, Integer operator) {
 		if (left.getType() != right.getType()) {
 			System.err.println(String.format(
 					"Error: incompatible types '%s' and '%s'", left.getType()
@@ -745,8 +762,8 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 		return code;
 	}
 
-	public CodeFragment generateUnaryOperatorCodeFragment(CodeFragment value,
-			Integer operator) {
+	protected CodeFragment generateUnaryOperatorCodeFragment(
+			CodeFragment value, Integer operator) {
 		String code_stub = "";
 		if ((value.getType() == Type.INT) || (value.getType() == Type.CHAR)) {
 			switch (operator) {
@@ -850,6 +867,11 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 	@Override
 	public CodeFragment visitParen(@NotNull SaralParser.ParenContext ctx) {
 		return visit(ctx.expression());
+	}
+
+	@Override
+	public CodeFragment visitFunc(@NotNull SaralParser.FuncContext ctx) {
+		return visitChildren(ctx);
 	}
 
 	@Override
@@ -979,62 +1001,210 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 
 	@Override
 	public CodeFragment visitArglist(@NotNull SaralParser.ArglistContext ctx) {
-		return visitChildren(ctx);
+		CodeFragment code = new CodeFragment();
+		List<Variable> args = new ArrayList<Variable>();
+
+		for (int i = 0; i < ctx.ID().size(); i++) {
+			Type type = null;
+			boolean array = false;
+			SaralParser.TypeBasicContext tb = ctx.type(i).typeBasic();
+			if (tb != null) {
+				type = visit(tb).getType();
+			}
+			SaralParser.TypeArrayContext ta = ctx.type(i).typeArray();
+			if (ta != null) {
+				array = true;
+				type = visit(ta).getType();
+			}
+
+			String identifier = ctx.ID(i).getText();
+			args.add(new Variable(identifier, type, this.generateNewRegister(),
+					false, array));
+		}
+
+		code.setArgs(args);
+
+		return code;
 	}
 
 	@Override
-	public CodeFragment visitParam_list(
-			@NotNull SaralParser.Param_listContext ctx) {
-		return visitChildren(ctx);
-	}
-
-	@Override
-	public CodeFragment visitRet(@NotNull SaralParser.RetContext ctx) {
-		return visitChildren(ctx);
-	}
-
-	@Override
-	public CodeFragment visitProc_call(@NotNull SaralParser.Proc_callContext ctx) {
-		return visitChildren(ctx);
-	}
-
-	@Override
-	public CodeFragment visitFunc(@NotNull SaralParser.FuncContext ctx) {
-		return visitChildren(ctx);
-	}
-
-	@Override
-	public CodeFragment visitExtern_proc_declaration(
-			@NotNull SaralParser.Extern_proc_declarationContext ctx) {
+	public CodeFragment visitParamlist(@NotNull SaralParser.ParamlistContext ctx) {
 		return visitChildren(ctx);
 	}
 
 	@Override
 	public CodeFragment visitFunc_block(
 			@NotNull SaralParser.Func_blockContext ctx) {
-		return visitChildren(ctx);
+		symbolTable.addTable();
+		CodeFragment body = visit(ctx.statements());
+		body.appendCode(visit(ctx.ret()));
+		symbolTable.removeTable();
+
+		return body;
+	}
+
+	@Override
+	public CodeFragment visitRet(@NotNull SaralParser.RetContext ctx) {
+		return visit(ctx.expression());
+	}
+
+	@Override
+	public CodeFragment visitExtern_proc_declaration(
+			@NotNull SaralParser.Extern_proc_declarationContext ctx) {
+		CodeFragment code = new CodeFragment();
+		String identifier = ctx.ID().getText();
+		CodeFragment argsFragment = visit(ctx.arglist());
+		CodeFragment funcDecl = funcDeclaration(identifier, null,
+				argsFragment.getArgs(), true, true);
+		CodeFragment funcBody = funcBody(null, true, true);
+
+		code.addCode(funcDecl);
+		code.addCode(funcBody);
+
+		return code;
 	}
 
 	@Override
 	public CodeFragment visitExtern_func_declaration(
 			@NotNull SaralParser.Extern_func_declarationContext ctx) {
-		return visitChildren(ctx);
+		CodeFragment code = new CodeFragment();
+		String identifier = ctx.ID().getText();
+		Type type = visit(ctx.typeBasic()).getType();
+		CodeFragment argsFragment = visit(ctx.arglist());
+		CodeFragment funcDecl = funcDeclaration(identifier, type,
+				argsFragment.getArgs(), false, true);
+		CodeFragment funcBody = funcBody(null, false, true);
+
+		code.addCode(funcDecl);
+		code.addCode(funcBody);
+
+		return code;
 	}
 
 	@Override
 	public CodeFragment visitProc_definition(
 			@NotNull SaralParser.Proc_definitionContext ctx) {
-		return visitChildren(ctx);
+		CodeFragment code = new CodeFragment();
+		String identifier = ctx.ID().getText();
+		CodeFragment argsFragment = visit(ctx.arglist());
+		CodeFragment funcDecl = funcDeclaration(identifier, null,
+				argsFragment.getArgs(), true, false);
+		CodeFragment body = visit(ctx.block());
+		CodeFragment funcBody = funcBody(body, true, false);
+
+		code.addCode(funcDecl);
+		code.addCode(funcBody);
+
+		functionDeclarations.addCode(code);
+		return new CodeFragment();
 	}
 
 	@Override
 	public CodeFragment visitFunc_definition(
 			@NotNull SaralParser.Func_definitionContext ctx) {
-		return visitChildren(ctx);
+		CodeFragment code = new CodeFragment();
+		String identifier = ctx.ID().getText();
+		Type type = visit(ctx.typeBasic()).getType();
+		CodeFragment argsFragment = visit(ctx.arglist());
+		CodeFragment funcDecl = funcDeclaration(identifier, type,
+				argsFragment.getArgs(), false, false);
+		CodeFragment body = visit(ctx.func_block());
+		CodeFragment funcBody = funcBody(body, false, false);
+
+		code.addCode(funcDecl);
+		code.addCode(funcBody);
+
+		functionDeclarations.addCode(code);
+		return new CodeFragment();
+	}
+
+	protected CodeFragment funcDeclaration(String identifier, Type type,
+			List<Variable> args, boolean procedure, boolean external) {
+		CodeFragment code = new CodeFragment();
+
+		if (!symbolTable.currentTableContainsFunction(identifier)) {
+			if (procedure) {
+				type = Type.INT;
+			}
+			String declare = "declare";
+			CodeFragment funcCode = new CodeFragment();
+			String functionId = "@" + identifier;
+			if (!external) {
+				declare = "define";
+				functionId = this.generateNewFunction();
+			}
+
+			symbolTable.addFunction(new Function(identifier, type, functionId,
+					args, procedure, external));
+
+			symbolTable.addTable(); // new symbol table for arguments and local
+									// variables
+			CodeFragment argList = new CodeFragment();
+			for (int i = 0; i < args.size(); i++) {
+				Variable var = args.get(i);
+				if (!symbolTable.currentTableContainsVariable(var.getName())) {
+					symbolTable.addVariable(var);
+				} else {
+					throw new IllegalStateException(String.format(
+							"Error: variable '%s' already declared.",
+							identifier));
+				}
+
+				String arraySign = var.isArray() ? "*" : "";
+				argList.addCode(String.format("%s%s* %s", var.getType()
+						.getCode(), arraySign, var.getRegister()));
+				if (i < args.size() - 1) {
+					argList.addCode(", ");
+				}
+			}
+
+			ST template = new ST(
+					"<declare> <type> <function_id>(<arg_list>); <comment> \n");
+			template.add("declare", declare);
+			template.add("function_id", functionId);
+			template.add("type", type.getCode());
+			template.add("arg_list", argList);
+			template.add("comment", identifier);
+			code.addCode(template.render());
+		} else {
+			throw new IllegalStateException(String.format(
+					"Error: Function '%s' already declared.", identifier));
+		}
+
+		return code;
+	}
+
+	protected CodeFragment funcBody(CodeFragment bodyCode, boolean procedure,
+			boolean external) {
+		CodeFragment code = new CodeFragment();
+		symbolTable.removeTable(); // remove table with arguments and local func
+									// variables
+		if (!external) {
+			Type type = bodyCode.getType();
+			String retRegister = bodyCode.getRegister();
+			if (procedure) {
+				type = Type.INT;
+				retRegister = this.generateNewRegister();
+				bodyCode.addCode(String.format("%s = add %s 0, 0\n", retRegister, type.getCode()));
+			}
+			ST temp = new ST("{\n" + "start:\n" + "<body_code>"
+					+ "ret <type> <ret_register>\n" + "}\n\n");
+			temp.add("body_code", bodyCode);
+			temp.add("ret_register", retRegister);
+			temp.add("type", type.getCode());
+			code.addCode(temp.render());
+		}
+
+		return code;
 	}
 
 	@Override
 	public CodeFragment visitFunc_call(@NotNull SaralParser.Func_callContext ctx) {
+		return visitChildren(ctx);
+	}
+
+	@Override
+	public CodeFragment visitProc_call(@NotNull SaralParser.Proc_callContext ctx) {
 		return visitChildren(ctx);
 	}
 

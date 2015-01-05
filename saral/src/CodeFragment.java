@@ -1,9 +1,12 @@
+import java.util.List;
+
 public class CodeFragment {
 	private String code;
 	private String register;
 	private Type type;
 	private String comment;
 	private Variable variable;
+	private List<Variable> args;
 
 	public CodeFragment() {
 		this.code = "";
@@ -62,5 +65,13 @@ public class CodeFragment {
 
 	public Variable getVariable() {
 		return this.variable;
+	}
+
+	public void setArgs(List<Variable> args) {
+		this.args = args;
+	}
+
+	public List<Variable> getArgs() {
+		return this.args;
 	}
 }
