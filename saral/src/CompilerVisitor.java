@@ -58,9 +58,9 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 				+ "declare i32 @scanFloat(float*)\n"
 				+ "declare i32 @scanString(i8**)\n"
 				+ "declare i8* @strConcat(i8*, i8*)\n\n"
-				+ "<extern_function_declarations>\n" + "<function_declarations>\n"
-				+ "define i32 @main() {\n" + "start:\n" + "<body_code>"
-				+ "ret i32 0\n" + "}\n");
+				+ "<extern_function_declarations>\n"
+				+ "<function_declarations>\n" + "define i32 @main() {\n"
+				+ "start:\n" + "<body_code>" + "ret i32 0\n" + "}\n");
 
 		template.add("extern_function_declarations", externFunctionDeclarations);
 		template.add("function_declarations", functionDeclarations);
@@ -247,7 +247,8 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 	}
 
 	@Override
-	public CodeFragment visitTypeBasic(@NotNull SaralParser.TypeBasicContext ctx) {
+	public CodeFragment visitTypeSimple(
+			@NotNull SaralParser.TypeSimpleContext ctx) {
 		CodeFragment code = new CodeFragment();
 		String t = ctx.getText();
 		if (t.equals("neskutočné numeralio")) {
@@ -258,10 +259,19 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 			code.setType(Type.CHAR);
 		} else if (t.equals("logický")) {
 			code.setType(Type.BOOL);
-		} else if (t.equals("slovo")) {
-			code.setType(Type.STRING);
 		}
 
+		return code;
+	}
+
+	@Override
+	public CodeFragment visitTypeBasic(@NotNull SaralParser.TypeBasicContext ctx) {
+		CodeFragment code = new CodeFragment();
+		String t = ctx.getText();
+		if (t.equals("slovo")) {
+			code.setType(Type.STRING);
+		} else
+			code.appendCode(visit(ctx.typeSimple()));
 		return code;
 	}
 
@@ -1014,7 +1024,17 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 
 	@Override
 	public CodeFragment visitParamlist(@NotNull SaralParser.ParamlistContext ctx) {
-		return visitChildren(ctx);
+		CodeFragment code = new CodeFragment();
+		List<Variable> args = new ArrayList<Variable>();
+
+		for (int i = 0; i < ctx.var().size(); i++) {
+			Variable var = visit(ctx.var(i)).getVariable();
+			args.add(var);
+		}
+
+		code.setArgs(args);
+
+		return code;
 	}
 
 	@Override
@@ -1089,7 +1109,7 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 			@NotNull SaralParser.Func_definitionContext ctx) {
 		CodeFragment code = new CodeFragment();
 		String identifier = ctx.ID().getText();
-		Type type = visit(ctx.typeBasic()).getType();
+		Type type = visit(ctx.typeSimple()).getType();
 		CodeFragment argsFragment = visit(ctx.arglist());
 		CodeFragment funcDecl = funcDeclaration(identifier, type,
 				argsFragment.getArgs(), false, false);
@@ -1122,7 +1142,7 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 			symbolTable.addFunction(new Function(identifier, type, functionId,
 					args, procedure, external));
 
-			symbolTable.addTable(); // new symbol table for arguments and local
+			symbolTable.addFunctionTable(); // new symbol table for arguments and local
 									// variables
 			CodeFragment argList = new CodeFragment();
 			for (int i = 0; i < args.size(); i++) {
@@ -1135,9 +1155,8 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 							identifier));
 				}
 
-				String arraySign = var.isArray() ? "*" : "";
-				argList.addCode(String.format("%s%s* %s", var.getType()
-						.getCode(), arraySign, var.getRegister()));
+				argList.addCode(String.format("%s* %s", var.getType()
+						.getCode(), var.getRegister()));
 				if (i < args.size() - 1) {
 					argList.addCode(", ");
 				}
@@ -1162,7 +1181,7 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 	protected CodeFragment funcBody(CodeFragment bodyCode, boolean procedure,
 			boolean external) {
 		CodeFragment code = new CodeFragment();
-		symbolTable.removeTable(); // remove table with arguments and local func
+		symbolTable.removeFunctionTable(); // remove table with arguments and local func
 									// variables
 		if (!external) {
 			Type type = bodyCode.getType();
@@ -1170,7 +1189,8 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 			if (procedure) {
 				type = Type.INT;
 				retRegister = this.generateNewRegister();
-				bodyCode.addCode(String.format("%s = add %s 0, 0\n", retRegister, type.getCode()));
+				bodyCode.addCode(String.format("%s = add %s 0, 0\n",
+						retRegister, type.getCode()));
 			}
 			ST temp = new ST("{\n" + "start:\n" + "<body_code>"
 					+ "ret <type> <ret_register>\n" + "}\n\n");
@@ -1185,11 +1205,66 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 
 	@Override
 	public CodeFragment visitFunc_call(@NotNull SaralParser.Func_callContext ctx) {
-		return visitChildren(ctx);
+		CodeFragment code = new CodeFragment();
+		String identifier = ctx.ID().getText();
+		List<Variable> params = visit(ctx.paramlist()).getArgs();
+		code.appendCode(funcCall(identifier, params, false));
+
+		return code;
 	}
 
 	@Override
 	public CodeFragment visitProc_call(@NotNull SaralParser.Proc_callContext ctx) {
-		return visitChildren(ctx);
+		CodeFragment code = new CodeFragment();
+		String identifier = ctx.ID().getText();
+		List<Variable> params = visit(ctx.paramlist()).getArgs();
+		code.appendCode(funcCall(identifier, params, true));
+
+		return code;
+	}
+
+	protected CodeFragment funcCall(String identifier, List<Variable> params,
+			boolean procedure) {
+		CodeFragment code = new CodeFragment();
+		if (symbolTable.containsFunction(identifier)) {
+			Function f = symbolTable.getFunction(identifier);
+			Type type = f.getType();
+			if (procedure != f.isProcedure()) {
+				String call = procedure ? "procedure" : "function";
+				String decl = f.isProcedure() ? "procedure" : "function";
+				System.err.println(String.format(
+						"Warning: call %s '%s' previously declared as %s",
+						call, identifier, decl));
+			}
+			CodeFragment paramList = new CodeFragment();
+			for (int i = 0; i < params.size(); i++) {
+				Variable var = params.get(i);
+
+				String arraySign = var.isArray() ? "*" : "";
+				paramList.addCode(String.format("%s* %s", var.getType()
+						.getCode(), var.getRegister()));
+				if (i < params.size() - 1) {
+					paramList.addCode(", ");
+				}
+			}
+
+			String retRegister = this.generateNewRegister();
+			ST template = new ST(
+					"<ret_register> = call <type> <function_id>(<arg_list>); <comment> \n");
+			template.add("ret_register", retRegister);
+			template.add("function_id", f.getId());
+			template.add("type", type.getCode());
+			template.add("arg_list", paramList);
+			template.add("comment", identifier);
+
+			code.addCode(template.render());
+			code.setType(type);
+			code.setRegister(retRegister);
+		} else {
+			throw new IllegalStateException(String.format(
+					"Error: Unknown function '%s'.", identifier));
+		}
+
+		return code;
 	}
 }

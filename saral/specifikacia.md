@@ -191,4 +191,4 @@ Pre počítače 8. generácie a ich (v dobe vytvorenia jazyka Šaral 1.0) nestan
 V prípade, že máme užitočnú zbierku barov, meňakov, furtov alebo fundušov, môžeme si ich odložiť do skladu. Keď ich opať budeme chcieť použiť, jazyku Šaral 2.0 to oznámime pomocou príkazu `falda` (sklad) nasledovaného menom skladu (meno súbora). Obsah tohto súbora sa vloží namiesto riadka s príkazom falda. Celé toto sa deje ešte v predspracovaní vstupu a pred lexikálnou analýzou.
 
 ####*Platnosť premenných*
-*Premenné existujú v bloku, v ktorom boli definované. Premenné definované v najvyššom bloku sú globálne a všetky procedúry a funkcie k nim majú prístup*
+*Premenné existujú v bloku, v ktorom boli definované. Procedúry a funkcie vidia iba vlastné lokálne premenné, svoje argumenty a funkcie deklarované v súčasnom bloku a v predchádzajúcich blokoch*

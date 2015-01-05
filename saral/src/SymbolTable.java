@@ -9,10 +9,13 @@ public class SymbolTable {
 
 	private List<Map<String, Function>> functions = null; // tables with
 															// functions
+	// backup tables with variables (for isolating new functions)
+	private List<List<Map<String, Variable>>> backupVariables = null;
 
 	public SymbolTable() {
 		this.variables = new LinkedList<Map<String, Variable>>();
 		this.functions = new LinkedList<Map<String, Function>>();
+		this.backupVariables = new LinkedList<List<Map<String, Variable>>>();
 	}
 
 	public void addTable() {
@@ -25,6 +28,18 @@ public class SymbolTable {
 		functions.remove(0);
 	}
 
+	public void addFunctionTable() {
+		this.backupVariables.add(0, this.variables);
+		this.variables = new LinkedList<Map<String, Variable>>();
+		this.addTable();
+	}
+
+	public void removeFunctionTable() {
+		this.removeTable();
+		this.variables = this.backupVariables.get(0);
+		this.backupVariables.remove(0);
+	}
+	
 	public void addVariable(Variable var) {
 		Map<String, Variable> table = variables.get(0);
 		table.put(var.getName(), var);

@@ -78,7 +78,7 @@ for_statement
 
 
 func_definition
-	: FUNCTION typeBasic ID LPAR arglist RPAR EOL func_block
+	: FUNCTION typeSimple ID LPAR arglist RPAR EOL func_block
 	;
 proc_definition
 	: FUNCTION ID LPAR arglist RPAR EOL block
@@ -137,8 +137,11 @@ type
 typeArray
 	: ARRAY typeBasic
 	;
+typeSimple
+	: INT_T | BOOL_T | FLOAT_T | CHAR_T
+	;
 typeBasic
-	: INT_T | BOOL_T | FLOAT_T | CHAR_T | STRING_T
+	: typeSimple | STRING_T
 	;
 	
 expression
