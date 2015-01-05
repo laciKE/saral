@@ -266,16 +266,6 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 	}
 
 	@Override
-	public CodeFragment visitTypeArray(@NotNull SaralParser.TypeArrayContext ctx) {
-		return visitChildren(ctx);
-	}
-
-	@Override
-	public CodeFragment visitValue(@NotNull SaralParser.ValueContext ctx) {
-		return visitChildren(ctx);
-	}
-
-	@Override
 	public CodeFragment visitValVar(@NotNull SaralParser.ValVarContext ctx) {
 		CodeFragment code = new CodeFragment();
 		CodeFragment var = visitChildren(ctx);
@@ -870,11 +860,6 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 	}
 
 	@Override
-	public CodeFragment visitFunc(@NotNull SaralParser.FuncContext ctx) {
-		return visitChildren(ctx);
-	}
-
-	@Override
 	public CodeFragment visitIf_statement(
 			@NotNull SaralParser.If_statementContext ctx) {
 		CodeFragment code = new CodeFragment();
@@ -1205,18 +1190,6 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 
 	@Override
 	public CodeFragment visitProc_call(@NotNull SaralParser.Proc_callContext ctx) {
-		return visitChildren(ctx);
-	}
-
-	@Override
-	public CodeFragment visitBlock_statement(
-			@NotNull SaralParser.Block_statementContext ctx) {
-		return visitChildren(ctx);
-	}
-
-	@Override
-	public CodeFragment visitSimple_statement(
-			@NotNull SaralParser.Simple_statementContext ctx) {
 		return visitChildren(ctx);
 	}
 }
