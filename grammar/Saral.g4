@@ -212,7 +212,8 @@ ID : '_'?(LETTER)(LETTER | DIGIT | '_')* ;
 LETTER : [a-zA-ZľščťžýáíéäúôóďĺĽŠČŤŽÝÁÍÉÄÚÔÓĎĹ];
 
 
-EMPTY_LINE : {getCharPositionInLine()==0}? ((' '|'\t')* EOL) -> skip ;
+EMPTY_LINE : {getCharPositionInLine()==0}? ((' '|'\t')* COMMENT? EOL) -> skip ;
+COMMENT: '//' ~[\r\n]* -> skip;
 
 EOL : '\r'? '\n' | '\r';
 WS : (' ' | '\t')+ -> skip;

@@ -1,6 +1,6 @@
-saral/bin/
-saral/lib/
-saral/src/Saral*.java
-saral/src/Saral*.tokens
+bin/
+lib/
+src/Saral*.java
+src/Saral*.tokens
 tmp
 *.bak
