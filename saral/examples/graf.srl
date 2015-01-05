@@ -3,40 +3,41 @@ meňak neskutočné numeralio M
 vežmi N
 vežmi M
 funduš logický vrchol [N]
-funduš logický hrana [N][N]
+funduš logický hrana [N * N]
 
 meňak neskutočné numeralio i
 meňak neskutočné numeralio w
 zrob s meňakom i od 0 do N
 	vrchol[i] = ošaľ
 	zrob s meňakom w od 0 do N
-		hrana[i][w] = ošaľ
+		hrana[i * N + w] = ošaľ
 
 meňak neskutočné numeralio b
 meňak neskutočné numeralio c
 zrob s meňakom i od 0 do M
 	vežmi b
 	vežmi c
-	hrana[c][b] = pravda
-	hrana[b][c] = pravda
+	hrana[c * N + b] = pravda
+	hrana[b * N + c] = pravda
 
-bar HlbokoHľadaj(neskutočné numeralio začiatok)
-	keď vrchol[začiatok] == ošaľ potom
+bar HlbokoHľadaj(funduš logický vrchol, funduš logický hrana, neskutočné numeralio N, neskutočné numeralio začiatok)
+	keď ne vrchol[začiatok] potom
 		vrchol[začiatok] = pravda
 		meňak neskutočné numeralio v
 		zrob s meňakom v od 0 do N
-			keď hrana[začiatok][v] potom
-				paľ do baru HlbokoHľadaj(v)
+			keď hrana[začiatok * N + v] potom
+				paľ do baru HlbokoHľadaj(vrchol, hrana, N, v)
 
-paľ do baru HlbokoHľadaj(0)
+meňak neskutočné numeralio nula = 0
+paľ do baru HlbokoHľadaj(vrchol, hrana, N, nula)
 
 meňak logický súvislý = pravda
 zrob s meňakom i od 0 do N
 	súvislý = súvislý a vrchol[i]
 
 keď súvislý potom
-	furt slovo odpoveď = "ANO"
+	furt slovo odpoveď = "YES"
 	ciskaj odpoveď
 inak
-	furt slovo odpoveď = "NIE"
+	furt slovo odpoveď = "NO"
 	ciskaj odpoveď

@@ -30,8 +30,6 @@ simple_statement
 	| var_definition
 	| const_definition
 	| array_declaration
-	| func_definition
-	| proc_definition
 	| proc_call
 	| write
 	| read
@@ -40,7 +38,9 @@ simple_statement
 	;
 
 block_statement
-	: if_statement
+	:	func_definition
+	| proc_definition
+	| if_statement
 	| while_statement
 	| for_statement
 	| block

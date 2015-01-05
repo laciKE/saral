@@ -50,13 +50,15 @@ Kľúčové slová `dimenzion` a `stuj` v návrhu jazyka Šaral 2.0 ostávajú i
 * `=`
 * `[]`
 
-####Základné typy
+####Typy
 * `skutočné numeralio`
 * `neskutočné numeralio`
 * `logický`
 * `písmeno`
 * `slovo`
 * `funduš`
+
+Prvé štyri typy sú považované za jednoduché, prvých päť typov za základné. Typ `funduš` je rozšírený typ.
 
 #####Trojhodnotová logika
 Jazyk Šaral (aj Šaral 2.0) používa trojhodnotovú logiku s hodnotami `pravda`, `ošaľ` a `skoroošaľ` zodpovedajúcimi hodnotam `True`, `False` a `Unknown` v Kleeneho logike. Pri vyhodnocovaní logických výrazov v podmienkach a cykloch sa podmienka vyhodnotí ako pravdivá jedine v prípade, ak je jej hodnota `Pravda`.
@@ -82,10 +84,10 @@ meňak písmeno trieda = 'A'
 ####Deklarácia polí
 ```
 funduš typ názov [rozmer]
-funduš typ názov [rozmer][rozmer]
+funduš typ názov [rozmer]
 
 dimenzion funduš typ názov [rozmer]
-dimenzion funduš typ názov [rozmer][rozmer]
+dimenzion funduš typ názov [rozmer]
 ```
 Odporúčané je používať prvý spôsob deklarácie, možnosti s kľúčovým slovom `dimenzion` sú podporované iba kvôli zachovaniu spätnej kompatibility s jazykom Šaral. Rozmer musí byť meňak, furt alebo hodnota typu `neskutočné numerálio`.
 
@@ -93,7 +95,7 @@ Odporúčané je používať prvý spôsob deklarácie, možnosti s kľúčovým
 ```
 funduš skutočné numeralio šč [3]
 meňak neskutočné numeralio N = 42
-dimenzion funduš logický fň [N][10]
+dimenzion funduš logický fň [N]
 ```
 
 ####Definícia procedúr a funkcií
@@ -114,11 +116,11 @@ bar typ názov(typ názov, typ názov, ...)
 ```
 
 Prvý bar nám nevracia nič, kým druhý bar po skončení svojej činnosti vráti jednu hodnotu, ktorá je rovnakého typu ako bar.
-Pokiaľ niekde chceme využiť služby, ktoré nám ponúkajú bary, použijeme buď kľúčovú konštrukciu `paľ do baru` alebo `vrac mi z baru`.
+Pokiaľ niekde chceme využiť služby, ktoré nám ponúkajú bary, použijeme buď kľúčovú konštrukciu `paľ do baru` alebo `vrac mi z baru`. Do baru môže vstúpiť len meňak ľubovoľného typu, bar môže vrátiť iba jednoduchý typ, cudzokrajný bar má možnosť vrátiť základný typ.
 *Funkcie berú ako argumenty referencie na premenné.*
 
 #####Externé funkcie
-V jazyku Šaral 2.0 je možné použiť aj bary z cudzokrajných prostredí, v ktorých sa rozpráva iným jazykom (ak sú samozrejme v tých baroch  použité rovnaké typy, len inak nazvané, lebo cudzí jazyk). O našej snahe okoštovať takéto cudzie bary informujeme jazyk Šaral pomocou kunštrukcie
+V jazyku Šaral 2.0 je možné použiť aj bary z cudzokrajných prostredí, v ktorých sa rozpráva iným jazykom (ak sú samozrejme v tých baroch  použité rovnaké typy, len inak nazvané, lebo cudzí jazyk). O našej snahe okoštovať takéto cudzie bary informujeme jazyk Šaral pomocou konštrukcie
 
 ```
 inakši bar názov(typ názov, typ názov, ...) 
@@ -131,16 +133,16 @@ inakši bar typ názov(typ názov, typ názov, ...)
 ```
 inakši bar neskutočné numeralio puts(slovo s)
 
-bar ZámenaManželiek(neskutočné numeralio a, neskutočné numeralio b)
-	a = a + b
-	b = a - b
-	a = a - b
+bar ZámenaManželiek(neskutočné numeralio A, neskutočné numeralio B)
+	A = A + B
+	B = A - B
+	A = A - B
 	
-bar slovo SlovakPub()
-	vrac "Bryndzové halušky"
+bar neskutočné numerálio SlovakPub()
+	meňak počet = 47;
 
-meňak slovo jedlo
-jedlo = vrac mi z baru SlovakPub()
+meňak slovo kofoly
+kofoly = vrac mi z baru SlovakPub()
 
 meňak neskutočné numeralio X = 500
 meňak neskutočné numeralio Y = 600
@@ -185,7 +187,7 @@ Ak chceme niečo vypísať, použijeme príkaz `ciskaj názov`, kde názov je n�
 Vstup sa načítava pomocou príkazu `vežmi názov`, kde názov je názov meňaku, ktorý treba načítať.
 
 #####nstdin/nstdout
-Pre počítače 8. generácie a ich (v dobe vytvorenia jazyka Šaral 1.0) nestandardný vstup a výstup má tento jazyk podporu aj pre inštrukcie `povidz typ názov` a `sluchaj typ názov`, ktoré možno budú podporované už v jazyku Šaral 2.0 (ak bude čas a podarí sa mi to rozbehať)
+Pre počítače 8. generácie a ich (v dobe vytvorenia jazyka Šaral 1.0) nestandardný vstup a výstup má tento jazyk podporu aj pre inštrukcie `povidz názov` a `sluchaj názov`, ktoré možno budú podporované už v jazyku Šaral 2.0 (ak bude čas a podarí sa mi to rozbehať)
 
 ####Rozšírenie schopností jayzka
 V prípade, že máme užitočnú zbierku barov, meňakov, furtov alebo fundušov, môžeme si ich odložiť do skladu. Keď ich opať budeme chcieť použiť, jazyku Šaral 2.0 to oznámime pomocou príkazu `falda` (sklad) nasledovaného menom skladu (meno súbora). Obsah tohto súbora sa vloží namiesto riadka s príkazom falda. Celé toto sa deje ešte v predspracovaní vstupu a pred lexikálnou analýzou.

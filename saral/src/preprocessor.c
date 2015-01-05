@@ -22,7 +22,7 @@ void preprocess_source(char *filename) {
 	}
 
 	void indent_dedent(){
-		if (strspn(line, " \t") == strlen(line)) { //only whitespace line
+		if (strspn(line, " \t") + 1 == strlen(line)) { //only whitespace line
 			return;
 		}
 	
@@ -72,7 +72,7 @@ void preprocess_source(char *filename) {
 			indent_dedent();
 			expand_includes();
 		}
-		strcpy(line, "\n");
+		strcpy(line, "\n\n");
 		indent_dedent();
 		printf("\n");
 		fclose(fp);

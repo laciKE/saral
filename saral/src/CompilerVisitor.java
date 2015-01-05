@@ -718,6 +718,7 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 				temp.add("condition", condition);
 				code_stub = temp.render();
 				break;
+			// TODO cmp instructions
 			default:
 				System.err.println(String.format(
 						"Error: Unsupported binary operator for type '%s'",
@@ -1029,6 +1030,12 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 
 		for (int i = 0; i < ctx.var().size(); i++) {
 			Variable var = visit(ctx.var(i)).getVariable();
+			if (var.isConstant()) {
+				throw new IllegalAccessError(
+						String.format(
+								"Parameter '%s' is constant, variable expected.",
+								var.getName()));
+			}
 			args.add(var);
 		}
 
@@ -1142,8 +1149,9 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 			symbolTable.addFunction(new Function(identifier, type, functionId,
 					args, procedure, external));
 
-			symbolTable.addFunctionTable(); // new symbol table for arguments and local
-									// variables
+			symbolTable.addFunctionTable(); // new symbol table for arguments
+											// and local
+			// variables
 			CodeFragment argList = new CodeFragment();
 			for (int i = 0; i < args.size(); i++) {
 				Variable var = args.get(i);
@@ -1155,8 +1163,8 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 							identifier));
 				}
 
-				argList.addCode(String.format("%s* %s", var.getType()
-						.getCode(), var.getRegister()));
+				argList.addCode(String.format("%s* %s",
+						var.getType().getCode(), var.getRegister()));
 				if (i < args.size() - 1) {
 					argList.addCode(", ");
 				}
@@ -1181,8 +1189,9 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 	protected CodeFragment funcBody(CodeFragment bodyCode, boolean procedure,
 			boolean external) {
 		CodeFragment code = new CodeFragment();
-		symbolTable.removeFunctionTable(); // remove table with arguments and local func
-									// variables
+		symbolTable.removeFunctionTable(); // remove table with arguments and
+											// local func
+		// variables
 		if (!external) {
 			Type type = bodyCode.getType();
 			String retRegister = bodyCode.getRegister();

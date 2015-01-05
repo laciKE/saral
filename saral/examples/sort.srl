@@ -1,6 +1,6 @@
 meňak neskutočné numeralio N
 vežmi N
-funduš neskutočné numeralio čísla [N]
+funduš neskutočné numeralio čísla [N+1]
 
 meňak neskutočné numeralio i
 meňak neskutočné numeralio X
@@ -8,31 +8,34 @@ zrob s meňakom i od 0 do N
 	vežmi X
 	čísla[i] = X
 
-bar Zlučovanie(neskutočné numeralio začiatok, neskutočné numeralio koniec)
+bar Zlučovanie(funduš neskutočné numeralio čísla, neskutočné numeralio začiatok, neskutočné numeralio koniec)
 	meňak neskutočné numeralio dĺžka = koniec - začiatok
 	keď dĺžka <> 1 potom
-		meňak neskutočné numeralio polovica = dĺžka : 2
-		paľ do baru Zlučovanie(začiatok, polovica)
-		paľ do baru Zlučovanie(polovica, koniec)
-		funduš neskutočné numeralio kópia [dĺžka]
+		meňak neskutočné numeralio polovica = začiatok + dĺžka : 2
+		paľ do baru Zlučovanie(čísla, začiatok, polovica)
+		paľ do baru Zlučovanie(čísla, polovica, koniec)
+		funduš neskutočné numeralio kópia [dĺžka+1]
+		meňak neskutočné numeralio i
 		zrob s meňakom i od začiatok do koniec
-			kópia[i] = čísla[i]
+			kópia[i-začiatok] = čísla[i]
+		kópia[dĺžka] = 2147000000
+
 		meňak neskutočné numeralio l = začiatok
 		meňak neskutočné numeralio r = polovica
 		zrob s meňakom i od začiatok do koniec
-			keď kópia[l] < kópia[r] potom
-				čísla[i] = kópia[l]
+			keď kópia[l-začiatok] < kópia[r-začiatok] potom
+				čísla[i] = kópia[l-začiatok]
 				l = l + 1
 				keď l >= polovica potom
-					l = koniec - 1
+					l = koniec
 			inak
-				čísla[i] = kópia[r]
+				čísla[i] = kópia[r-začiatok]
 				r = r + 1
 				keď r >= koniec potom
-					r = polovica - 1
+					r = koniec
 
-
-paľ do baru Zlučovanie(0, N)
+meňak neskutočné numeralio nula = 0
+paľ do baru Zlučovanie(čísla, nula, N)
 
 zrob s meňakom i od 0 do N
 	ciskaj čísla[i]
