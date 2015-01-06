@@ -138,11 +138,12 @@ bar ZámenaManželiek(neskutočné numeralio A, neskutočné numeralio B)
 	B = A - B
 	A = A - B
 	
-bar neskutočné numerálio SlovakPub()
-	meňak počet = 47;
+bar slovo SlovakPub()
+	meňak slovo jedlo = "Bryndzove halusky";
+	vrac jedlo
 
-meňak slovo kofoly
-kofoly = vrac mi z baru SlovakPub()
+meňak slovo halusky
+halusky = vrac mi z baru SlovakPub()
 
 meňak neskutočné numeralio X = 500
 meňak neskutočné numeralio Y = 600
