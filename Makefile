@@ -36,4 +36,4 @@ $(LIB_O): $(LIBS_SRCS)
 clean:
 	rm -f -r bin
 	rm -f lib/*.o lib/*.so
-	rm -r src/Saral*.java src/Saral*.tokens
+	rm -f src/Saral*.java src/Saral*.tokens
