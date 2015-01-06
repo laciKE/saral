@@ -1,0 +1,45 @@
+// ukážka použitia modulu skladisko zadefinovaného v súbore modul_lib
+
+falda modul_lib
+falda slova
+
+meňak neskutočné numeralio N = 47
+meňak skutočné numeralio PI = 3.14159
+meňak slovo zvieratko = "lama"
+
+meňak slovo akcia
+meňak slovo hodnota1
+meňak slovo hodnota2
+
+// vložíme hodnoty do skladiska
+akcia = "setNeskutocneNumeralio"
+hodnota1 = vrac mi z baru neskutočné_numeralio_ako_slovo(N)
+hodnota2 = vrac mi z baru skladisko(akcia, hodnota1)
+
+akcia = "setSkutocneNumeralio"
+meňak neskutočné numeralio presnosť = 2
+hodnota1 = vrac mi z baru skutočné_numeralio_ako_slovo(PI, presnosť)
+hodnota2 = vrac mi z baru skladisko(akcia, hodnota1)
+
+akcia = "setSlovo"
+hodnota1 = zvieratko
+hodnota2 = vrac mi z baru skladisko(akcia, hodnota1)
+
+
+// vyberieme hodnoty zo skladiska
+hodnota1 = ""
+akcia = "getSkutocneNumeralio"
+hodnota2 = vrac mi z baru skladisko(akcia, hodnota1)
+ciskaj hodnota2
+
+akcia = "getSlovo"
+hodnota2 = vrac mi z baru skladisko(akcia, hodnota1)
+ciskaj hodnota2
+
+akcia = "getNeskutocneNumeralio"
+hodnota2 = vrac mi z baru skladisko(akcia, hodnota1)
+ciskaj hodnota2
+
+
+
+
