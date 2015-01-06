@@ -1,16 +1,6 @@
-meňak slovo reverz
-vežmi reverz
+falda slova
 
-furt písmeno koniec = 'A' - 'A'
-meňak neskutočné numeralio dĺžka = 0
-kým reverz[dĺžka] <> koniec rob
-	dĺžka = dĺžka + 1
-
-furt neskutočné numeralio stred = (dĺžka + 1) / 2
-meňak neskutočné numeralio i
-zrob s meňakom i od 0 do stred
-	meňak písmeno p = reverz[i]
-	reverz[i] = reverz[dĺžka - 1 - i]
-	reverz[dĺžka - 1 - i] = p
-
+meňak slovo vstup
+vežmi vstup
+meňak slovo reverz = vrac mi z baru slovo_reverz(vstup)
 ciskaj reverz

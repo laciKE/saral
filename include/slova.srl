@@ -1,0 +1,88 @@
+// Falda s barmi na spracovanie slov a konverziu základných typov na typ slovo
+// (Knižnica funkcií na prácu s reťazcami)
+// Autor: laciKE, 5.1.2014
+
+//
+// Bary na prácu s reťazcami (zisťovanie dĺžky, porovnávanie, reverz)
+//
+
+// spočíta dĺžku zadaného slova
+bar neskutočné numeralio slovo_dĺžka(slovo reťazec)
+	furt písmeno koniec = 'A' - 'A'
+	meňak neskutočné numeralio dĺžka = 0
+	kým reťazec[dĺžka] <> koniec rob
+		dĺžka = dĺžka + 1
+	vrac dĺžka
+
+bar slovo slovo_reverz(slovo reťazec)
+	meňak slovo reverz = reťazec
+	furt neskutočné numeralio dĺžka = vrac mi z baru slovo_dĺžka(reverz)
+	furt neskutočné numeralio stred = (dĺžka + 1) / 2
+	meňak neskutočné numeralio i
+	zrob s meňakom i od 0 do stred
+		meňak písmeno p = reverz[i]
+		reverz[i] = reverz[dĺžka - 1 - i]
+		reverz[dĺžka - 1 - i] = p
+
+	vrac reverz
+
+//
+// Bary na koverziu základných typov
+//
+
+// konvertuje typ neskutočné numeralio na jeho reprezentáciu typu slovo
+bar slovo neskutočné_numeralio_ako_slovo(neskutočné numeralio číslo)
+	meňak slovo hodnota = ""
+	meňak neskutočné numeralio číslo2 = číslo
+	meňak slovo znamienko = ""
+	keď číslo == 0 potom
+		hodnota = "0"
+	inak
+		meňak neskutočné numeralio číslo2 = číslo
+		keď číslo < 0 potom
+			znamienko = "-"
+			číslo2 = -číslo
+		kým číslo2 > 0 rob
+			meňak neskutočné numeralio cifra = číslo2 % 10
+			keď cifra == 0 potom
+				hodnota = "0" + hodnota
+			keď cifra == 1 potom
+				hodnota = "1" + hodnota
+			keď cifra == 2 potom
+				hodnota = "2" + hodnota
+			keď cifra == 3 potom
+				hodnota = "3" + hodnota
+			keď cifra == 4 potom
+				hodnota = "4" + hodnota
+			keď cifra == 5 potom
+				hodnota = "5" + hodnota
+			keď cifra == 6 potom
+				hodnota = "6" + hodnota
+			keď cifra == 7 potom
+				hodnota = "7" + hodnota
+			keď cifra == 8 potom
+				hodnota = "8" + hodnota
+			keď cifra == 9 potom
+				hodnota = "9" + hodnota
+			číslo2 = číslo2 / 10
+		hodnota = znamienko + hodnota
+	vrac hodnota
+
+// konvertuje typ skutočné numeralio na jeho reprezentáciu typu slovo
+// parameter presnosť určije počet desatinných miest v slovnej reprezentácii
+bar slovo skutočné_numeralio_ako_slovo(skutočné numeralio číslo, skutočné numeralio presnosť)
+	meňak slovo hodnota = ""
+	meňak skutočné numeralio číslo2 = číslo
+	meňak slovo znamienko = ""
+	keď číslo < 0.0 potom
+		znamienko = "-"
+		číslo2 = -číslo
+	
+	vrac hodnota
+
+// konvertuje typ písmeno na jeho reprezentáciu typu slovo
+bar slovo písmeno_ako_slovo(písmeno znak)
+	meňak slovo hodnota = "A"
+	hodnota[0] = znak
+
+	vrac hodnota
