@@ -1,0 +1,45 @@
+falda storage
+
+// ukážka "modulu", ktorý dokáže ukladať slovné reprezentácie jednotlivých hodnôt (využíva štandardnú knižnicu jazyka Šaral nazvanú storage)
+// pomocou argumentu akcia definujeme, ktorý getetr/setter chceme použiť:
+//	"setSlovo"
+//	"setNeskutocneNumeralio"
+//	"setSkutocneNumeralio"
+//	"getSlovo"
+//	"getNeskutocneNumeralio"
+//	"getSkutocneNumeralio"
+
+bar slovo skladisko(slovo akcia, slovo hodnota)
+	meňak slovo reťazec = "modul_retazec"
+	meňak slovo číslo = "modul_cislo"
+	meňak slovo desatinné_číslo = "modul_desatinne_cislo"
+	meňak slovo návrat = ""
+	meňak slovo akcia2
+
+	falda slova
+
+	akcia2 = "setSlovo"
+	keď vrac mi z baru slová_rovnaké(akcia, akcia2) potom
+		paľ do baru storage_put(reťazec, hodnota)
+
+	akcia2 = "setNeskutocneNumeralio"
+	keď vrac mi z baru slová_rovnaké(akcia, akcia2) potom
+		paľ do baru storage_put(číslo, hodnota)
+
+	akcia2 = "setSkutocneNumeralio"
+	keď vrac mi z baru slová_rovnaké(akcia, akcia2) potom
+		paľ do baru storage_put(desatinné_číslo, hodnota)
+
+	akcia2 = "getSlovo"
+	keď vrac mi z baru slová_rovnaké(akcia, akcia2) potom
+		návrat = vrac mi z baru storage_get(reťazec)
+
+	akcia2 = "getNeskutocneNumeralio"
+	keď vrac mi z baru slová_rovnaké(akcia, akcia2) potom
+		návrat = vrac mi z baru storage_get(číslo)
+
+	akcia2 = "getSkutocneNumeralio"
+	keď vrac mi z baru slová_rovnaké(akcia, akcia2) potom
+		návrat = vrac mi z baru storage_get(desatinné_číslo)
+
+	vrac návrat

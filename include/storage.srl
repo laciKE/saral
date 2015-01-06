@@ -1,0 +1,5 @@
+inakši bar storage_put(slovo kľúč, slovo hodnota)
+
+inakši bar slovo storage_get(slovo kľuč)
+
+inakši bar neskutočné numeralio storage_contains(slovo kľuč)

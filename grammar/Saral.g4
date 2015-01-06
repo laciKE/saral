@@ -7,7 +7,7 @@ init
 	: ((extern_func_declaration | extern_proc_declaration) EOL)* statements
 	;
 
-statements : statement+;
+statements : statement*;
 
 block
 	: INDENT statements DEDENT
