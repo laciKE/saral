@@ -5,4 +5,6 @@ src/Saral*.java
 src/Saral*.tokens
 tmp
 *.bak
+*.swp
+a.out
 antlr-4.4-complete.jar

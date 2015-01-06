@@ -6,7 +6,7 @@ void printInt(int *a) {
 	printf("%d\n", *a);
 }
 
-void printFloat(float *f) {
+void printFloat(double *f) {
 	printf("%.4f\n", *f);
 }
 
@@ -31,8 +31,8 @@ void scanInt(int *a) {
 	scanf("%d", a);
 }
 
-void scanFloat(float *f) {
-	scanf("%f", f);
+void scanFloat(double *f) {
+	scanf("%lf", f);
 }
 
 void scanBool(char *b) {

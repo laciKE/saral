@@ -1,7 +1,7 @@
 public enum Type {
 	BOOL("logický", "i2", "0"), CHAR("písmeno", "i8", "0"), INT(
 			"neskutočné numeralio", "i32", "0"), FLOAT("skutočné numeralio",
-			"float", "0.0"), STRING("slovo", "i8*", "0");
+			"double", "0.0"), STRING("slovo", "i8*", "0");
 
 	private String name = "";
 	private String code = "";
