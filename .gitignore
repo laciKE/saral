@@ -1,6 +1,8 @@
 bin/
-lib/
+*.o
+*.so
 src/Saral*.java
 src/Saral*.tokens
 tmp
 *.bak
+antlr-4.4-complete.jar

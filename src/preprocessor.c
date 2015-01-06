@@ -74,7 +74,6 @@ void preprocess_source(char *filename, char * includes_dir) {
 		char filename3[4096];
 		strncpy(filename3, includes_dir, 2016);
 		strncat(filename3, filename2, 2064);
-		fprintf(stderr, "%s\n", filename3);
 		fp = fopen(filename3, "r");
 	}
 	if (fp != NULL) {

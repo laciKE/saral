@@ -1,4 +1,4 @@
-ANTLR = java -jar /home/lacike/Programy/antlr/antlr-4.4-complete.jar
+ANTLR = java -jar ../lib/antlr-4.4-complete.jar
 COMPILER = bin/Compiler.class
 PREPROCESSOR = bin/preprocessor
 VISITOR = src/SaralBaseVisitor.java
@@ -23,7 +23,7 @@ $(VISITOR): grammar/$(GRAMMAR)
 
 $(COMPILER): $(PREPROCESSOR) $(VISITOR) $(COMPILER_SRCS) $(LIBS)
 	mkdir -p bin
-	javac src/*.java -d bin/
+	javac -classpath lib/antlr-4.4-complete.jar src/*.java -d bin/
 
 $(LIB_SO): $(LIBS_SRCS)
 	mkdir -p lib
@@ -34,5 +34,6 @@ $(LIB_O): $(LIBS_SRCS)
 	gcc -fPIC $(LIBS_SRCS) -c -o $(LIB_O)
 
 clean:
-	rm -f -r bin lib
+	rm -f -r bin
+	rm -f lib/*.o lib/*.so
 	rm -r src/Saral*.java src/Saral*.tokens
