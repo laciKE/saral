@@ -227,7 +227,6 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 	@Override
 	public CodeFragment visitAssignment(
 			@NotNull SaralParser.AssignmentContext ctx) {
-		// TODO restrict array assignment
 		CodeFragment code = new CodeFragment();
 		CodeFragment lvalue = visit(ctx.var());
 		Variable var = lvalue.getVariable();
@@ -236,6 +235,14 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 			System.err
 					.println(String
 							.format("Warning: '%s' was declared as constant, assignment ignored.",
+									var.getName()));
+			return code;
+		}
+
+		if (var.isArray()) {
+			System.err
+					.println(String
+							.format("Warning: '%s' was declared as an array, assignment ignored.",
 									var.getName()));
 			return code;
 		}
@@ -1204,7 +1211,8 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 			if (type == Type.STRING) {
 				retRegister = this.generateNewRegister();
 				bodyCode.addCode(String.format("%s = call %s @string(%s %s)\n",
-						retRegister, type.getCode(), type.getCode(), bodyCode.getRegister()));
+						retRegister, type.getCode(), type.getCode(),
+						bodyCode.getRegister()));
 			}
 			ST temp = new ST("{\n" + "start:\n" + "<body_code>"
 					+ "ret <type> <ret_register>\n" + "}\n\n");
