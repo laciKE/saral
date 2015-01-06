@@ -22,7 +22,10 @@ public class Compiler {
 			CodeFragment code = eval.visit(tree);
 			System.out.print(code.toString());
 		} catch (IllegalStateException e) {
-			System.err.println(e.toString());
+			System.err.println(e.getMessage());
+			System.exit(-1);
+		} catch (IllegalAccessError e) {
+			System.err.println(e.getMessage());
 			System.exit(-1);
 		}
 	}

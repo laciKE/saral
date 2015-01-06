@@ -116,7 +116,7 @@ bar typ názov(typ názov, typ názov, ...)
 ```
 
 Prvý bar nám nevracia nič, kým druhý bar po skončení svojej činnosti vráti jednu hodnotu, ktorá je rovnakého typu ako bar.
-Pokiaľ niekde chceme využiť služby, ktoré nám ponúkajú bary, použijeme buď kľúčovú konštrukciu `paľ do baru` alebo `vrac mi z baru`. Do baru môže vstúpiť len meňak ľubovoľného typu, bar môže vrátiť iba jednoduchý typ, cudzokrajný bar má možnosť vrátiť základný typ.
+Pokiaľ niekde chceme využiť služby, ktoré nám ponúkajú bary, použijeme buď kľúčovú konštrukciu `paľ do baru` alebo `vrac mi z baru`. Do baru môže vstúpiť len meňak ľubovoľného typu, bar môže vrátiť ľubovoľný základný typ.
 *Funkcie berú ako argumenty referencie na premenné.*
 
 #####Externé funkcie

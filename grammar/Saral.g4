@@ -78,7 +78,7 @@ for_statement
 
 
 func_definition
-	: FUNCTION typeSimple ID LPAR arglist RPAR EOL func_block
+	: FUNCTION typeBasic ID LPAR arglist RPAR EOL func_block
 	;
 proc_definition
 	: FUNCTION ID LPAR arglist RPAR EOL block

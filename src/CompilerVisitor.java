@@ -57,7 +57,8 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 				+ "declare i32 @scanBool(i2*)\n"
 				+ "declare i32 @scanFloat(float*)\n"
 				+ "declare i32 @scanString(i8**)\n"
-				+ "declare i8* @strConcat(i8*, i8*)\n\n"
+				+ "declare i8* @strConcat(i8*, i8*)\n"
+				+ "declare i8* @string(i8*)\n\n"
 				+ "<extern_function_declarations>\n"
 				+ "<function_declarations>\n" + "define i32 @main() {\n"
 				+ "start:\n" + "<body_code>" + "ret i32 0\n" + "}\n");
@@ -1031,10 +1032,9 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 		for (int i = 0; i < ctx.var().size(); i++) {
 			Variable var = visit(ctx.var(i)).getVariable();
 			if (var.isConstant()) {
-				throw new IllegalAccessError(
-						String.format(
-								"Parameter '%s' is constant, variable expected.",
-								var.getName()));
+				throw new IllegalAccessError(String.format(
+						"Parameter '%s' is constant, variable expected.",
+						var.getName()));
 			}
 			args.add(var);
 		}
@@ -1116,7 +1116,7 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 			@NotNull SaralParser.Func_definitionContext ctx) {
 		CodeFragment code = new CodeFragment();
 		String identifier = ctx.ID().getText();
-		Type type = visit(ctx.typeSimple()).getType();
+		Type type = visit(ctx.typeBasic()).getType();
 		CodeFragment argsFragment = visit(ctx.arglist());
 		CodeFragment funcDecl = funcDeclaration(identifier, type,
 				argsFragment.getArgs(), false, false);
@@ -1200,6 +1200,11 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 				retRegister = this.generateNewRegister();
 				bodyCode.addCode(String.format("%s = add %s 0, 0\n",
 						retRegister, type.getCode()));
+			}
+			if (type == Type.STRING) {
+				retRegister = this.generateNewRegister();
+				bodyCode.addCode(String.format("%s = call %s @string(%s %s)\n",
+						retRegister, type.getCode(), type.getCode(), bodyCode.getRegister()));
 			}
 			ST temp = new ST("{\n" + "start:\n" + "<body_code>"
 					+ "ret <type> <ret_register>\n" + "}\n\n");

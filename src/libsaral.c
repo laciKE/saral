@@ -73,6 +73,15 @@ char * strConcat(char *a, char *b) {
 	return ret;
 }
 
+// return string allocated at heap
+char * string(char *str) {
+	int len = strlen(str) + 1;
+	char *ret = (char *) malloc(len);
+	strcpy(ret, str);
+
+	return ret;
+}
+
 /*
 int main() {
 	int a = 47;
