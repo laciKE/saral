@@ -9,7 +9,7 @@ DIR=`dirname $0`
 
 echo "Compiling $1 into $output"
 
-$DIR/bin/preprocessor $1 > $1.prep && \
+$DIR/bin/preprocessor $1 $DIR/include/ > $1.prep && \
 java -cp $DIR/bin:$CLASSPATH Compiler $1.prep > $1.ll && \
 opt -S -std-compile-opts $1.ll > $1.opt.ll && \
 llvm-as $1.opt.ll && \
