@@ -180,7 +180,7 @@ LBRACK: '[';
 RBRACK: ']';
 
 AND : 'a';
-OR : 'alebo';
+OR : 'abo';
 NOT : 'ne';
 
 ADD: '+';
