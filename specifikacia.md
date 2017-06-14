@@ -38,7 +38,7 @@ Platné identifikátory sú postupnosti malých a veľkých písmen, číslic a 
 * `sluchaj`
 * `povidz`
 * `a`
-* `alebo`
+* `abo`
 * `ne`
 
 Kľúčové slová `dimenzion` a `stuj` v návrhu jazyka Šaral 2.0 ostávajú iba pre zachovanie spätnej kompatibility s jazykom Šaral.
