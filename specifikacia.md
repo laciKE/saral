@@ -45,7 +45,7 @@ Kľúčové slová `dimenzion` a `stuj` v návrhu jazyka Šaral 2.0 ostávajú i
 
 ####Operátory
 * `+`, `-`, `*`, `/`, `:`, `%`
-* `a`, `alebo`, `ne` 
+* `a`, `abo`, `ne` 
 * `==`, `<`, `>`, `<=`, `>=`, `<>`
 * `=`
 * `[]`
