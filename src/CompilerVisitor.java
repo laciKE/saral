@@ -296,8 +296,8 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 	public CodeFragment valVar(Variable var) {
 		CodeFragment code = new CodeFragment();
 		String register = generateNewRegister();
-		code.addCode(String.format("%s = load %s* %s ; %s value\n", register,
-				var.getType().getCode(), var.getRegister(), var.getName()));
+		code.addCode(String.format("%s = load %s, %s* %s ; %s value\n", register,
+				var.getType().getCode(), var.getType().getCode(), var.getRegister(), var.getName()));
 		code.setRegister(register);
 		code.setType(var.getType());
 
@@ -398,7 +398,7 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 			int value = Type.charToValue(ch);
 			Type type = Type.CHAR;
 			ST template = new ST(
-					"<mem_register> = getelementptr <type>* <ptr>, i32 <index>\n"
+					"<mem_register> = getelementptr <type>, <type>* <ptr>, i32 <index>\n"
 							+ "store <type> <value>, <type>* <mem_register> ; <value_name>\n");
 			template.add("index", i - 1);
 			template.add("type", type.getCode());
@@ -442,7 +442,7 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 		Type type = var.getType();
 		if (!var.isArray() && var.getType() == Type.STRING) {
 			ptr_register = this.generateNewRegister();
-			ST temp = new ST("<ptr_register> = load <type>* <ptr> ; string\n");
+			ST temp = new ST("<ptr_register> = load <type>, <type>* <ptr> ; string\n");
 			temp.add("type", type.getCode());
 			temp.add("ptr_register", ptr_register);
 			temp.add("ptr", var.getRegister());
@@ -452,7 +452,7 @@ public class CompilerVisitor extends SaralBaseVisitor<CodeFragment> {
 		}
 		ST template = new ST(
 				"<index_code>"
-						+ "<ret> = getelementptr <type>* <ptr>, <index_type> <index_reg> \n");
+						+ "<ret> = getelementptr <type>, <type>* <ptr>, <index_type> <index_reg> \n");
 		template.add("index_code", index);
 		template.add("index_type", indexType.getCode());
 		template.add("index_reg", index.getRegister());
